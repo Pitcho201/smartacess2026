@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Estudantes Cadastrados - SmartAccess ISPBié</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+      /* Estilos para a tabela de Estudantes Cadastrados - ORIGINALMENTE DO DASHBOARD */
+      .table th {
+        background-color: #343a40;
+        color: white;
+      }
+      .btn-gerenciar {
+        /* Estilos do botão gerenciar da dashboard */
+        font-size: 0.9rem;
+        padding: 5px 10px;
+         text-align: center;
+      }
+
+      /* Estilos para a seção de filtro */
+      .filter-section {
+        background-color: #e9ecef;
+        padding: 20px;
+        border-radius: 0.5rem;
+        margin-bottom: 20px;
+      }
+
+      .btn-filter {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn-filter:hover {
+        background-color: #0056b3;
+      }
+
+      /* Removendo estilos de delete que não são pertinentes a essa página */
+      .btn-delete {
+        display: none;
+      }
+
+      /* Novo estilo para centralizar o ID do estudante */
+      .id-col {
+        text-align: center;
+      }
+      .actions-col {
+  text-align: center;
+  vertical-align: middle; /* Ajuda a centralizar verticalmente se a célula for mais alta */
+}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">SmartAccess ISPBié</a>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <h2 class="text-center mb-4">Estudantes Cadastrados</h2>
+
+      <div class="filter-section">
+        <form method="get" class="text-center">
+          <div class="row justify-content-center g-3">
+            <div class="col-md-3">
+              <label for="curso" class="form-label fw-bold">Curso:</label>
+              <select name="curso" id="curso" class="form-select">
+                <option value="">Todos</option>
+                <option value="Informática" {% if curso == 'Informática' %}selected{% endif %}>Informática</option>
+                <option value="Enfermagem" {% if curso == 'Enfermagem' %}selected{% endif %}>Enfermagem</option>
+                <option value="Contabilidade" {% if curso == 'Contabilidade' %}selected{% endif %}>Contabilidade</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="periodo" class="form-label fw-bold">Período:</label>
+              <select name="periodo" id="periodo" class="form-select">
+                <option value="">Todos</option>
+                <option value="Regular" {% if periodo == 'Regular' %}selected{% endif %}>Regular</option>
+                <option value="Pós-Laboral" {% if periodo == 'Pós-Laboral' %}selected{% endif %}>Pós-Laboral</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="ano_frequencia" class="form-label fw-bold">Ano:</label>
+              <select name="ano_frequencia" id="ano_frequencia" class="form-select">
+                <option value="">Todos</option>
+                <option value="1º Ano" {% if ano_frequencia == '1º Ano' %}selected{% endif %}>1º Ano</option>
+                <option value="2º Ano" {% if ano_frequencia == '2º Ano' %}selected{% endif %}>2º Ano</option>
+                <option value="3º Ano" {% if ano_frequencia == '3º Ano' %}selected{% endif %}>3º Ano</option>
+                <option value="4º Ano" {% if ano_frequencia == '4º Ano' %}selected{% endif %}>4º Ano</option>
+                <option value="5º Ano" {% if ano_frequencia == '5º Ano' %}selected{% endif %}>5º Ano</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Pesquisar nome ou BI:</label>
+                <input type="text" name="termo" class="form-control" value="{{ termo }}">
+            </div>
+            <div class="col-md-2 align-self-end">
+              <button type="submit" class="btn btn-filter w-100">
+                <i class="bi bi-filter-fill"></i> Filtrar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <h3 class="mb-3">Lista de Estudantes</h3>
+<div class="table-responsive">
+  <table class="table table-striped table-bordered">
+    <thead class="thead-dark">
+      <tr>
+        <th class="id-col">Nº Estudante</th> {# Corrigido: Agora mostra "Nº Estudante" #}
+        <th class="id-col">Nome</th>
+        <th class="id-col">Número do BI</th>
+        <th class="id-col">Curso</th>
+        <th class="id-col">Período</th>
+        <th class="id-col">Ano de Frequência</th>
+        <th class="id-col">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for estudante in estudantes %}
+      <tr>
+        <td class="id-col">{{ estudante.numero_estudante }}</td> {# CORREÇÃO AQUI: Usa 'estudante.numero_estudante' #}
+        <td>{{ estudante.nome }}</td>
+        <td class="id-col">{{ estudante.numero_bi }}</td>
+        <td class="id-col">{{ estudante.curso }}</td>
+        <td class="id-col">{{ estudante.periodo }}</td>
+        <td class="id-col">{{ estudante.ano_frequencia }}</td>
+        <td class="actions-col"> 
+          <a
+            href="{{ url_for('gerenciar_estudante', id=estudante.id) }}"
+            class="btn btn-sm btn-outline-primary btn-gerenciar"
+            >Gerenciar</a
+          >
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+      <div class="text-center mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left-circle-fill"></i> Voltar ao Painel
+        </a>
+        <a href="{{ url_for('registrar') }}" class="btn btn-primary">
+          <i class="bi bi-person-plus-fill"></i> Registrar Novo Estudante
+        </a>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

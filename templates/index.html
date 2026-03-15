@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartAccess IMTS-VITALIS Bié</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #bbdefb 0%, #e1bee7 100%); /* Outro gradiente suave */
+            color: var(--heading-color);
+            text-align: center;
+            padding: 2rem;
+            overflow: hidden; /* Para conter as ondas de fundo */
+        }
+
+        .hero-container {
+            background-color: rgba(255, 255, 255, 0.95); /* Fundo branco mais opaco */
+            padding: 4rem; /* Aumentei o padding interno */
+            border-radius: 1.5rem; /* Bordas mais arredondadas */
+            box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada */
+            max-width: 600px; /* Aumentei a largura máxima */
+            width: 100%;
+            z-index: 10; /* Para ficar acima das ondas */
+        }
+
+        .logo-container {
+            margin-bottom: 2.5rem;
+            animation: pulse 2.5s infinite alternate;
+        }
+
+        .logo-container img {
+            width: 150px; /* Voltei ao tamanho original */
+            border-radius: 50%;
+            box-shadow: 0 0.3rem 0.7rem rgba(0, 0, 0, 0.15);
+            border: 7px solid rgba(255, 255, 255, 0.8); /* Borda mais grossa e suave */
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 1.2rem;
+            font-size: 3rem; /* Aumentei ainda mais a fonte */
+            letter-spacing: 0.05rem; /* Pequeno espaçamento entre letras */
+        }
+
+        .lead {
+            color: var(--secondary-color);
+            margin-bottom: 3rem;
+            font-size: 1.2rem;
+            line-height: 1.6; /* Melhor espaçamento entre linhas */
+        }
+
+        .btn-entrar {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.3rem; /* Aumentei a fonte do botão */
+            padding: 18px 35px; /* Aumentei o padding do botão */
+            border: none;
+            border-radius: 0.75rem; /* Bordas mais arredondadas no botão */
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Adicionei transição de sombra */
+            box-shadow: 0 0.3rem 0.7rem rgba(0, 0, 0, 0.1); /* Sombra inicial no botão */
+        }
+
+        .btn-entrar:hover {
+            background-color: darken(var(--primary-color), 15%); /* Escurecimento mais forte no hover */
+            transform: translateY(-3px) scale(1.02); /* Leve elevação e escala no hover */
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2); /* Sombra mais forte no hover */
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.03); /* Pulso mais sutil */
+            }
+        }
+
+        /* Ondas de fundo animadas */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('{{ url_for('static', filename='img/wave.png') }}') repeat-x; /* Substitua pelo caminho da sua imagem de onda */
+            animation: wave 4s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+            opacity: 0.7;
+            z-index: 1;
+        }
+
+        .wave:nth-child(2) {
+            animation-delay: -2s;
+            opacity: 0.5;
+            height: 80px;
+        }
+
+        @keyframes wave {
+            0% {
+                transform: translate3d(-90px, 0, 0);
+            }
+            100% {
+                transform: translate3d(85px, 0, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave"></div>
+    <div class="wave wave:nth-child(2)"></div>
+    <div class="hero-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/vitalis.png') }}" alt="Logo ISPBié" class="img-fluid rounded-circle">
+        </div>
+        <h1>SmartAccess</h1>
+        <p class="lead">Acesso inteligente e seguro ao IMTS-VITALIS Bié, impulsionado por reconhecimento facial avançado.</p>
+        <a href="{{ url_for('login') }}" class="btn btn-entrar">
+            <i class="bi bi-person-fill-check me-2"></i> Acessar o Sistema
+        </a>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

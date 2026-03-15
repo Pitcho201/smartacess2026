@@ -1,0 +1,420 @@
+/* Estilos Globais */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --light-bg: #f8f9fa;
+    --dark-bg: #343a40;
+    --text-color: #212529;
+    --heading-color: #343a40;
+    --border-radius: 0.3rem;
+    --box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.05);
+    --font-size-base: 1rem; /* Variável para o tamanho base da fonte */
+}
+
+body {
+    font-family: sans-serif;
+    color: var(--text-color);
+    background-color: var(--light-bg);
+    margin: 0;
+    padding: 0;
+    font-size: var(--font-size-base); /* Usando a variável para o tamanho da fonte */
+    line-height: 1.5; /* Melhor leitura em telas menores */
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px; /* Reduzi o padding padrão para telas menores */
+}
+
+/* Estilos da Sidebar */
+.sidebar {
+    background-color: var(--dark-bg);
+    color: white;
+    padding-top: 15px; /* Reduzi o padding superior */
+    min-height: auto; /* Removendo altura mínima fixa para fluidez */
+    position: static; /* Tornando estática em telas pequenas para fluir com o conteúdo */
+    width: 100%; /* Ocupa toda a largura em telas pequenas */
+    top: auto;
+    left: auto;
+    z-index: auto;
+    display: block; /* Mudando para block para layout vertical */
+    text-align: center; /* Centralizando o conteúdo da sidebar */
+}
+
+.sidebar-logo {
+    padding: 15px; /* Reduzi o padding */
+    margin-bottom: 15px; /* Reduzi a margem inferior */
+    border-bottom: 1px solid #495057;
+    padding-bottom: 15px; /* Reduzi o padding inferior */
+    width: 80%; /* Reduzi a largura para centralizar */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sidebar-logo img {
+    max-width: 80px; /* Reduzi o tamanho do logo */
+    height: auto;
+    border-radius: 50%;
+    border: 2px solid #f8f9fa;
+    margin-bottom: 8px; /* Reduzi a margem inferior */
+    box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.1); /* Sombra menor */
+}
+
+.sidebar h4 {
+    margin-top: 8px; /* Reduzi a margem superior */
+    color: white;
+    font-size: 1.1rem; /* Reduzi o tamanho da fonte */
+}
+
+.sidebar a {
+    padding: 10px 15px; /* Reduzi o padding */
+    text-decoration: none;
+    color: white;
+    display: block;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    text-align: left; /* Alinhando o texto à esquerda novamente */
+}
+
+.sidebar a:hover {
+    background-color: #495057;
+}
+
+.sidebar .nav-link i {
+    margin-right: 5px; /* Reduzi a margem do ícone */
+    font-size: 0.9rem; /* Reduzi o tamanho do ícone */
+}
+
+/* Estilos do Conteúdo Principal */
+.content {
+    margin-left: 0; /* Removendo a margem esquerda para ocupar toda a largura */
+    padding: 15px; /* Reduzi o padding */
+    margin-top: 15px; /* Adicionando margem superior para separar da sidebar */
+}
+
+/* Estilos de Cards */
+.card {
+    border: none;
+    box-shadow: var(--box-shadow);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem; /* Reduzi a margem inferior */
+    background-color: white;
+}
+
+/* Estilos de Botões */
+.btn {
+    display: inline-block;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-color);
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: 0.3rem 0.6rem; /* Reduzi o padding */
+    font-size: 0.9rem; /* Reduzi o tamanho da fonte */
+    border-radius: var(--border-radius);
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* ... (Estilos específicos de botões - primary, secondary, etc. - podem ser ajustados se necessário) ... */
+
+/* Estilos de Tabelas */
+.table th,
+.table td {
+    padding: 0.5rem; /* Reduzi o padding das células */
+    font-size: 0.9rem; /* Reduzi o tamanho da fonte nas tabelas */
+}
+
+/* Estilos de Formulários */
+.form-label {
+    font-weight: bold;
+    margin-bottom: 0.3rem; /* Reduzi a margem inferior */
+    color: var(--heading-color);
+    font-size: 0.9rem; /* Reduzi o tamanho da fonte da label */
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: 0.3rem 0.6rem; /* Reduzi o padding */
+    font-size: 0.9rem; /* Reduzi o tamanho da fonte */
+    border-radius: var(--border-radius);
+    margin-bottom: 0.8rem; /* Reduzi a margem inferior */
+}
+
+.form-select {
+    display: block;
+    width: 100%;
+    padding: 0.3rem 2rem 0.3rem 0.6rem; /* Ajustei o padding */
+    font-size: 0.9rem; /* Reduzi o tamanho da fonte */
+    border-radius: var(--border-radius);
+    margin-bottom: 0.8rem; /* Reduzi a margem inferior */
+}
+
+/* Estilos da Seção de Foto */
+.photo-section img {
+    max-width: 150px; /* Reduzi o tamanho da imagem */
+    margin-bottom: 8px; /* Reduzi a margem inferior */
+    margin-top: 8px; /* Reduzi a margem superior */
+}
+
+.photo-section #fotoCameraContainer {
+    margin-top: 0.5rem; /* Reduzi a margem superior */
+}
+
+.photo-section #capturarFotoBtn {
+    padding: 8px 15px; /* Reduzi o padding do botão */
+    font-size: 0.9rem; /* Reduzi o tamanho da fonte do botão */
+    margin-top: 0.3rem; /* Reduzi a margem superior */
+}
+
+/* Estilos de Abas */
+.nav-tabs .nav-link {
+    padding: 0.4rem 0.8rem; /* Reduzi o padding das abas */
+    font-size: 0.9rem; /* Reduzi o tamanho da fonte das abas */
+}
+
+/* Media Queries para Responsividade */
+
+/* Telas menores que 576px (telefones pequenos) */
+@media (max-width: 575.98px) {
+    :root {
+        --font-size-base: 0.9rem; /* Reduzindo ainda mais o tamanho base da fonte em telas muito pequenas */
+    }
+
+    .container {
+        padding: 10px; /* Reduzi ainda mais o padding do container */
+    }
+
+    .sidebar {
+        padding-top: 10px; /* Reduzi ainda mais o padding superior da sidebar */
+    }
+
+    .sidebar-logo {
+        width: 90%; /* Aumentei um pouco a largura do logo container */
+        padding: 10px; /* Reduzi o padding do logo */
+        margin-bottom: 10px; /* Reduzi a margem inferior do logo */
+        padding-bottom: 10px; /* Reduzi o padding inferior do logo */
+    }
+
+    .sidebar-logo img {
+        max-width: 70px; /* Reduzi ainda mais o tamanho do logo */
+        margin-bottom: 5px; /* Reduzi ainda mais a margem inferior do logo */
+    }
+
+    .sidebar h4 {
+        font-size: 1rem; /* Ajustei o tamanho da fonte do título da sidebar */
+        margin-top: 5px; /* Reduzi a margem superior do título */
+    }
+
+    .sidebar a {
+        padding: 8px 12px; /* Reduzi ainda mais o padding dos links da sidebar */
+        font-size: 0.9rem; /* Reduzi o tamanho da fonte dos links */
+    }
+
+    .sidebar .nav-link i {
+        margin-right: 3px; /* Reduzi ainda mais a margem do ícone */
+        font-size: 0.8rem; /* Reduzi ainda mais o tamanho do ícone */
+    }
+
+    .content {
+        padding: 10px; /* Reduzi ainda mais o padding do conteúdo */
+        margin-top: 10px; /* Reduzi ainda mais a margem superior do conteúdo */
+    }
+
+    h1 {
+        font-size: 1.8rem; /* Reduzi o tamanho da fonte do título principal */
+        margin-bottom: 0.8rem; /* Reduzi a margem inferior do título */
+    }
+
+    h2 {
+        font-size: 1.5rem; /* Reduzi o tamanho da fonte do título secundário */
+        margin-bottom: 1rem; /* Reduzi a margem inferior do título secundário */
+    }
+
+    .lead {
+        font-size: 0.95rem; /* Reduzi o tamanho da fonte do texto de destaque */
+        margin-bottom: 1.5rem; /* Reduzi a margem inferior do texto de destaque */
+    }
+
+    .btn {
+        padding: 0.25rem 0.5rem; /* Reduzi ainda mais o padding dos botões */
+        font-size: 0.8rem; /* Reduzi ainda mais o tamanho da fonte dos botões */
+        border-radius: 0.2rem; /* Reduzi o raio da borda dos botões */
+    }
+
+    .form-label {
+        font-size: 0.8rem; /* Reduzi ainda mais o tamanho da fonte da label */
+        margin-bottom: 0.2rem; /* Reduzi ainda mais a margem inferior da label */
+    }
+
+    .form-control,
+    .form-select {
+        padding: 0.25rem 0.5rem; /* Reduzi ainda mais o padding dos campos de formulário */
+        font-size: 0.8rem; /* Reduzi ainda mais o tamanho da fonte dos campos de formulário */
+        margin-bottom: 0.6rem; /* Reduzi ainda mais a margem inferior dos campos de formulário */
+        border-radius: 0.2rem; /* Reduzi o raio da borda dos campos de formulário */
+    }
+
+    .table th,
+    .table td {
+        padding: 0.3rem; /* Reduzi ainda mais o padding das células da tabela */
+        font-size: 0.8rem; /* Reduzi ainda mais o tamanho da fonte nas tabelas */
+    }
+
+    .photo-section img {
+        max-width: 120px; /* Reduzi ainda mais o tamanho da imagem na seção de foto */
+        margin-bottom: 5px; /* Reduzi ainda mais a margem inferior */
+        margin-top: 5px; /* Reduzi ainda mais a margem superior */
+    }
+
+    .photo-section #capturarFotoBtn {
+        padding: 6px 10px; /* Reduzi ainda mais o padding do botão de captura de foto */
+        font-size: 0.8rem; /* Reduzi ainda mais o tamanho da fonte do botão de captura */
+        margin-top: 0.2rem; /* Reduzi ainda mais a margem superior */
+    }
+
+    .nav-tabs .nav-link {
+        padding: 0.3rem 0.6rem; /* Reduzi ainda mais o padding das abas */
+        font-size: 0.8rem; /* Reduzi ainda mais o tamanho da fonte das abas */
+    }
+
+    /* Ajustes de layout específicos para telas pequenas podem ser adicionados aqui, */
+    /* como tornar elementos flexíveis em colunas (flex-direction: column), etc. */
+    .row {
+        flex-direction: column; /* Empilhar elementos em linhas em telas pequenas */
+    }
+
+    .col-md-6 {
+        width: 100%; /* Fazer as colunas ocuparem toda a largura */
+    }
+
+    .g-2 > * {
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0 !important;
+    }
+}
+
+/* Telas entre 576px e 767.98px (telefones maiores e tablets pequenos) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    :root {
+        --font-size-base: 0.95rem; /* Aumentando um pouco o tamanho base da fonte */
+    }
+
+    .container {
+        padding: 20px; /* Aumentando o padding do container */
+    }
+
+    .sidebar {
+        position: fixed; /* Fixando a sidebar novamente */
+        width: 200px; /* Largura da sidebar */
+        display: flex; /* Voltando para flex para layout lateral */
+        text-align: left; /* Alinhando o texto à esquerda */
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+    .content {
+        margin-left: 200px; /* Ajustando a margem do conteúdo */
+        padding: 20px; /* Aumentando o padding do conteúdo */
+        margin-top: 0; /* Removendo a margem superior */
+    }
+
+    h1 {
+        font-size: 2.2rem; /* Ajustando o tamanho da fonte do título */
+    }
+
+    h2 {
+        font-size: 1.8rem; /* Ajustando o tamanho da fonte do título secundário */
+    }
+
+    .lead {
+        font-size: 1rem; /* Ajustando o tamanho da fonte do texto de destaque */
+    }
+
+    .btn {
+        font-size: 1rem; /* Ajustando o tamanho da fonte dos botões */
+        padding: 0.375rem 0.75rem; /* Ajustando o padding dos botões */
+    }
+
+    .form-label {
+        font-size: 1rem; /* Ajustando o tamanho da fonte da label */
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 1rem; /* Ajustando o tamanho da fonte dos campos de formulário */
+    }
+
+    .table th,
+    .table td {
+        font-size: 0.9rem; /* Mantendo o tamanho da fonte nas tabelas */
+        padding: 0.6rem; /* Aumentando o padding das células */
+    }
+
+    .photo-section img {
+        max-width: 180px; /* Ajustando o tamanho da imagem na seção de foto */
+    }
+
+    .photo-section #capturarFotoBtn {
+        font-size: 1rem; /* Ajustando o tamanho da fonte do botão de captura */
+        padding: 10px 20px; /* Ajustando o padding do botão de captura */
+    }
+
+    .nav-tabs {
+        flex-wrap: nowrap; /* Evitar quebras de linha nas abas */
+    }
+
+    .sidebar {
+    transition: all 0.3s ease;
+}
+
+.sidebar.collapsed {
+    margin-left: -220px; /* Esconde a sidebar para fora da tela */
+}
+
+.content {
+    margin-left: 220px;
+    transition: margin-left 0.3s ease;
+}
+
+.content.expanded {
+    margin-left: 0;
+}
+.toast.bg-success {
+    background-color: var(--success-color) !important;
+}
+
+.toast.bg-danger {
+    background-color: var(--danger-color) !important;
+}
+
+.toast.bg-info {
+    background-color: var(--primary-color) !important;
+}
+
+.toast .toast-body {
+    font-size: 0.9rem;
+}
+#botaoRecarregar {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+#botaoRecarregar:hover {
+    background-color: #5a6268;
+}
+

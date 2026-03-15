@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Professor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4">Editar Professor: {{ professor.nome }} (ID: {{ professor.id }})</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('editar_professor', id=professor.id) }}">
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome Completo</label>
+                    <input type="text" class="form-control" id="nome" name="nome" value="{{ professor.nome }}" required>
+                </div>
+                
+                {# GRUPO DE CHECKBOXES PARA MÚLTIPLOS CURSOS #}
+                <div class="mb-3 border p-3 rounded">
+                    <label class="form-label fw-bold">Cursos de Atuação (Seleção Múltipla):</label>
+                    <div class="row">
+                        {% for curso in cursos_disponiveis %}
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="cursos_de_atuacao" value="{{ curso }}" 
+                                           id="curso-{{ curso }}"
+                                           {% if curso in cursos_atuais_list %}checked{% endif %}>
+                                    <label class="form-check-label" for="curso-{{ curso }}">
+                                        {{ curso }}
+                                    </label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <small class="form-text text-muted mt-2 d-block">As ofertas de disciplinas serão filtradas por esses cursos.</small>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save-fill"></i> Salvar Alterações
+                    </button>
+                    <a href="{{ url_for('gerenciar_professores') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

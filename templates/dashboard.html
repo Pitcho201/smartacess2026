@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - SmartAccess ISPBié</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <style>
+      :root {
+        --primary-color: #0056b3; /* Azul mais forte para destaque */
+        --secondary-color: #f8f9fa; /* Cor de fundo principal */
+        --dark-color: #212529; /* Cor da nova sidebar */
+        --link-hover-color: #007bff;
+        --sidebar-width: 250px; /* Largura ligeiramente maior para melhor leitura */
+      }
+
+      /* --- GERAL E LAYOUT --- */
+      body {
+        background-color: var(--secondary-color);
+        overflow-x: hidden;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      /* --- SIDEBAR (Barra Lateral) --- */
+      .sidebar {
+        background-color: var(--dark-color);
+        color: white;
+        padding-top: 0;
+        height: 100vh;
+        position: fixed;
+        width: var(--sidebar-width);
+        top: 0;
+        left: 0;
+        z-index: 1040;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, width 0.3s ease;
+        overflow-y: auto;
+      }
+
+      .sidebar.collapsed {
+        transform: translateX(calc(-1 * var(--sidebar-width)));
+      }
+
+      .sidebar-logo {
+        padding: 20px 0;
+        text-align: center;
+        margin-bottom: 20px;
+        background-color: #171a1d; 
+        width: 100%;
+      }
+
+      .sidebar-logo img {
+        max-width: 80px;
+        border-radius: 50%;
+        border: 3px solid var(--primary-color);
+        margin-bottom: 10px;
+        box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.1);
+      }
+
+      .sidebar h4 {
+        margin-top: 5px;
+        color: white;
+        font-weight: 600;
+      }
+
+      /* Links de navegação */
+      .sidebar .nav-link {
+        padding: 12px 25px;
+        color: #ced4da;
+        border-left: 5px solid transparent;
+        transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
+      }
+
+      .sidebar .nav-link:hover {
+        background-color: #343a40;
+        color: white;
+      }
+      
+      .sidebar .nav-link.active {
+        color: white;
+        background-color: #343a40;
+        border-left-color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      /* Dropdown no Sidebar */
+      .sidebar .dropdown-menu {
+        background-color: #343a40;
+        padding: 0;
+      }
+      .sidebar .dropdown-item {
+        color: #ced4da;
+        padding: 10px 25px 10px 40px;
+      }
+      .sidebar .dropdown-item:hover {
+        background-color: #495057;
+        color: white;
+      }
+
+      /* --- BOTÃO DE TOGGLE --- */
+      #menu-toggle {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1100;
+        font-size: 1.5rem;
+        color: white;
+        background-color: var(--primary-color);
+        border-radius: 5px;
+        padding: 5px 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        border: none;
+        cursor: pointer;
+      }
+
+      #menu-toggle:hover {
+        background-color: var(--link-hover-color);
+      }
+      
+      /* --- CONTEÚDO PRINCIPAL --- */
+      .content {
+        margin-left: var(--sidebar-width);
+        padding: 20px 30px;
+        transition: margin-left 0.3s ease;
+      }
+
+      .content.expanded {
+        margin-left: 0;
+      }
+      
+      @media (min-width: 769px) {
+        .content {
+          padding-top: 70px;
+        }
+      }
+
+      /* --- OVERLAY --- */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1030;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+      }
+
+      .overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* --- FILTROS E BUSCA --- */
+      .filter-section {
+        background-color: white;
+        padding: 25px;
+        border-radius: 0.75rem;
+        margin-bottom: 30px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+      }
+
+      .form-label {
+        font-weight: bold;
+        color: var(--dark-color);
+      }
+
+      .btn-filter, .btn-reconhecimento {
+        transition: all 0.2s ease-in-out;
+        border: none;
+      }
+      
+      .btn-filter {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .btn-filter:hover {
+        background-color: var(--link-hover-color);
+      }
+
+      /* --- BOTÃO DE RECONHECIMENTO (Ação Principal) --- */
+      .btn-reconhecimento {
+        background-color: #28a745;
+        color: white;
+        font-size: 1.1rem;
+        padding: 15px 30px;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 0.5rem rgba(40, 167, 69, 0.3);
+        text-decoration: none;
+      }
+
+      .btn-reconhecimento:hover {
+        background-color: #218838;
+      }
+
+      /* --- TABELA --- */
+      .table-responsive {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+      }
+      
+      .table thead th {
+        background-color: var(--dark-color);
+        color: white;
+        border-bottom: none;
+        vertical-align: middle;
+      }
+      
+      .table-striped > tbody > tr:nth-of-type(odd) > * {
+        background-color: #f1f3f5;
+      }
+
+      .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-size: 0.85rem;
+      }
+
+      .btn-delete:hover {
+        background-color: #c82333;
+      }
+
+      /* --- LINKS RÁPIDOS DE CURSO (Cards) --- */
+      .curso-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.08);
+        padding: 10px;
+        margin: 10px;
+        text-align: center;
+        flex-grow: 1;
+        min-width: 150px;
+        transition: transform 0.2s;
+      }
+      
+      .curso-card:hover {
+        transform: translateY(-3px);
+      }
+
+      .curso-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        font-weight: 600;
+        padding: 15px 20px;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease;
+      }
+      
+      .curso-link.informática { background-color: #007bff; color: white; }
+      .curso-link.enfermagem { background-color: #20c997; color: white; }
+      .curso-link.contabilidade { background-color: #fd7e14; color: white; }
+      .curso-link.todos { background-color: #6c757d; color: white; }
+
+      .curso-link.informática:hover { background-color: #0069d9; }
+      .curso-link.enfermagem:hover { background-color: #1aa37a; }
+      .curso-link.contabilidade:hover { background-color: #e8710f; }
+      .curso-link.todos:hover { background-color: #5a6268; }
+
+      .curso-link.active {
+        border: 3px solid #ffc107;
+        box-shadow: 0 0.15rem 0.5rem rgba(255, 193, 7, 0.5);
+      }
+      
+      /* Badge para o tipo de registro do funcionário */
+      .badge.bg-success { background-color: #28a745 !important; }
+      .badge.bg-danger { background-color: #dc3545 !important; }
+      
+      /* Responsividade aprimorada */
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 250px;
+          transform: translateX(-250px);
+        }
+        #menu-toggle {
+          background-color: #343a40;
+          left: 10px;
+        }
+        .content {
+          padding: 20px 15px;
+        }
+        .text-center.mb-4.d-flex {
+            flex-direction: column;
+        }
+        .col-md-3, .col-md-2 {
+            width: 100%;
+        }
+        .align-self-end {
+            align-self: flex-start !important;
+            margin-top: 10px;
+        }
+        .dropdown.d-grid button {
+            width: 100%;
+        }
+      }
+
+    </style>
+  </head>
+  <body>
+    <button id="menu-toggle" aria-label="Toggle menu">
+      <i class="bi bi-list"></i>
+    </button>
+    <nav class="sidebar" role="navigation" aria-label="Sidebar navigation">
+      <div class="sidebar-logo">
+        <img
+          src="{{ url_for('static', filename='img/vitalis.png') }}"
+          alt="Logo ISPBié"
+        />
+        <h4>Acesso Inteligente - ISPBIE</h4>         {% if session.get('usuario') %}
+          <p class="logged-user"><i class="bi bi-person-circle"></i> <b>{{ session.get('usuario') }}</b></p>         {% endif %}
+      </div>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a
+            class="nav-link active"
+            href="{{ url_for('dashboard', modulo=modulo) }}"
+          >
+            <i class="bi bi-house-door-fill"></i> Painel
+          </a>
+        </li>
+        
+        {# BLOCO DE LINKS EXCLUSIVOS DE ADMIN/GESTÃO (Admin e Funcionario_Admin) #}
+        {% if session.get('tipo_usuario') in ['Admin', 'Funcionario_Admin'] %}
+        
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('entradas') }}">
+            <i class="bi bi-people-fill"></i> Lista de Estudantes
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('registrar') }}">
+            <i class="bi bi-person-plus-fill"></i> Registrar Estudante
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('gerenciar_funcionarios') }}">
+            <i class="bi bi-person-lines-fill"></i> Gerenciar Funcionários
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('gerenciar_professores') }}">
+            <i class="bi bi-person-badge-fill"></i> Gerenciar Professores
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('gerenciar_oferta') }}"> 
+            <i class="bi bi-book-fill"></i> Gerenciar Ofertas
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('listar_associacoes') }}">
+            <i class="bi bi-link-45deg"></i> Associar Prof/Oferta
+          </a>
+        </li>
+        
+        {# NOVO DROP DOWN: GERIR CREDENCIAIS #}
+        <li class="nav-item dropdown">
+          <a 
+            class="nav-link dropdown-toggle" 
+            href="#" 
+            id="credenciaisDropdown" 
+            role="button" 
+            data-bs-toggle="dropdown" 
+            aria-expanded="false"
+          >
+            <i class="bi bi-shield-lock-fill"></i> Gerir Credenciais</a>
+          <ul class="dropdown-menu" aria-labelledby="credenciaisDropdown">
+            <li>
+              <a class="dropdown-item" href="{{ url_for('gerenciar_credenciais_prof') }}">
+                <i class="bi bi-person-badge"></i> Professores
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{{ url_for('gerenciar_credenciais_func') }}">
+                <i class="bi bi-person-lines-fill"></i> Funcionários
+              </a>
+            </li>
+          </ul>
+        </li>
+        {# FIM DO NOVO BLOCO DE LINKS EXCLUSIVOS DE ADMIN/GESTÃO #}
+        {% endif %}
+
+        {# LINK DE ESTATÍSTICAS (Visível para todos os perfis de monitoramento/gestão) #}
+        {% if session.get('tipo_usuario') in ['Admin', 'Professor', 'Funcionario', 'Funcionario_Admin'] %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('estatisticas') }}">
+            <i class="bi bi-graph-up"></i> Estatísticas Mensais
+          </a>
+        </li>
+        {% endif %}
+        
+        {# Link Opções (Apenas Admin) #}
+        {% if session.get('tipo_usuario') == 'Admin' %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('opcoes') }}">
+            <i class="bi bi-gear-fill"></i> Opções
+          </a>
+        </li>
+        {% endif %}
+        
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('logout') }}">
+            <i class="bi bi-box-arrow-left"></i> Sair
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="overlay"></div>
+
+    <main class="content" role="main">
+      <h1 class="mb-4 display-5">
+        Painel de Registros
+        {% if session.get('tipo_usuario') == 'Professor' %} <small class="text-secondary">(Professor)</small>{% endif %}
+        {% if session.get('tipo_usuario') == 'Funcionario' %} <small class="text-secondary">(Funcionário)</small>{% endif %}
+      </h1>
+
+      {# BOTÕES DE RECONHECIMENTO #}
+      {% if session.get('tipo_usuario') in ['Admin', 'Professor', 'Funcionario', 'Funcionario_Admin'] %}
+      <div class="text-center mb-4 d-flex justify-content-center gap-3">
+        <a href="{{ url_for('reconhecer') }}" class="btn btn-reconhecimento">
+          <i class="bi bi-camera-fill"></i> Iniciar Reconhecimento Facial
+        </a>
+      </div>
+      {% endif %}
+
+      <h3 class="mb-3">Últimos Registros</h3>
+      
+      {# SEÇÃO DE FILTROS #}
+      <div class="filter-section">
+        <form method="get" class="text-center" id="filterForm">
+          <div class="row justify-content-center g-3">
+            
+            {# FILTRO: SELEÇÃO DE MÓDULO #}
+            {% if session.get('tipo_usuario') == 'Admin' %}
+            <div class="col-md-3">
+              <label for="modulo_filtro" class="form-label fw-bold">Módulo:</label>
+              <select name="modulo" id="modulo_filtro" class="form-select" onchange="this.form.submit()">
+                <option value="estudantes" {% if modulo == 'estudantes' %}selected{% endif %}>Estudantes</option>
+                <option value="funcionarios" {% if modulo == 'funcionarios' %}selected{% endif %}>Funcionários</option>
+              </select>
+            </div>
+            {% endif %}
+
+            {# FILTROS ESPECÍFICOS DE ESTUDANTE #}
+            {% if modulo == 'estudantes' or session.get('tipo_usuario') == 'Professor' %}
+            <div class="col-md-3">
+              <label for="curso_filtro" class="form-label fw-bold">Curso:</label>
+              <select name="curso" id="curso_filtro" class="form-select"
+                      {% if session.get('tipo_usuario') == 'Professor' %}disabled{% endif %}>
+                
+                {% if session.get('tipo_usuario') == 'Professor' %}
+                  <option value="{{ curso_principal_prof }}" selected>{{ curso_principal_prof }}</option>
+                {% else %}
+                  <option value="Todos" {% if curso == 'Todos' %}selected{% endif %}>Todos</option>
+                  {% for curso_disp in cursos_disponiveis %}
+                    <option value="{{ curso_disp }}" {% if curso == curso_disp %}selected{% endif %}>{{ curso_disp }}</option>
+                  {% endfor %}
+                {% endif %}
+              </select>
+              {# **CRUCIAL PARA O PROFESSOR: Garante que o curso seja enviado mesmo com o select desativado** #}
+              {% if session.get('tipo_usuario') == 'Professor' %}
+                <input type="hidden" name="curso" value="{{ curso_principal_prof }}">
+              {% endif %}
+            </div>
+            
+            <div class="col-md-3">
+              <label for="disciplina_filtro" class="form-label fw-bold">Disciplina:</label>
+              <select name="disciplina" id="disciplina_filtro" class="form-select">
+                  <option value="">Todas</option>
+                  {% for disciplina in disciplinas %}
+                    <option value="{{ disciplina.id }}" {% if disciplina_filtro | string == disciplina.id | string %}selected{% endif %}>{{ disciplina.nome }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+            
+            <div class="col-md-3">
+              <label for="professor_filtro" class="form-label fw-bold">Professor:</label>
+              <select name="professor" id="professor_filtro" class="form-select" {% if session.get('tipo_usuario') == 'Professor' %}disabled{% endif %}>
+                  <option value="">Todos</option>
+                  {% for professor in professores %}
+                    <option value="{{ professor.id }}" {% if professor_filtro | string == professor.id | string %}selected{% endif %}>{{ professor.nome }}</option>
+                  {% endfor %}
+              </select>
+              {# **CRUCIAL PARA O PROFESSOR: Garante que o ID do Professor seja SEMPRE enviado** #}
+              {% if session.get('tipo_usuario') == 'Professor' %}
+                <input type="hidden" name="professor" value="{{ session.get('entidade_id') }}">
+              {% endif %}
+            </div>
+            {% endif %}
+
+            {# FILTROS ESPECÍFICOS DE FUNCIONÁRIO #}
+            {% if modulo == 'funcionarios' and session.get('tipo_usuario') not in ['Professor'] %}
+            <div class="col-md-3">
+              <label for="funcao_filtro" class="form-label fw-bold">Função/Cargo:</label>
+              <select name="funcao" id="funcao_filtro" class="form-select" 
+                      {% if session.get('tipo_usuario') == 'Funcionario' %}disabled{% endif %}>
+                <option value="">Todas</option>
+                {% for funcao in funcoes_disponiveis %}
+                  <option value="{{ funcao.funcao }}" {% if funcao_filtro == funcao.funcao %}selected{% endif %}>{{ funcao.funcao }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="departamento_filtro" class="form-label fw-bold">Departamento:</label>
+              <select name="departamento" id="departamento_filtro" class="form-select" 
+                      {% if session.get('tipo_usuario') == 'Funcionario' %}disabled{% endif %}>
+                <option value="">Todos</option>
+                {% for depto in departamentos_disponiveis %}
+                  <option value="{{ depto.departamento }}" {% if departamento_filtro == depto.departamento %}selected{% endif %}>{{ depto.departamento }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+
+            {# FILTRO GERAL DE PESQUISA (Nome/BI) #}
+            <div class="col-md-3">
+              <label for="termo_pesquisa" class="form-label fw-bold">Pesquisar nome ou BI:</label>
+              <input type="text" name="termo" id="termo_pesquisa" class="form-control" value="{{ termo }}" placeholder="Nome ou BI" 
+                     {% if session.get('tipo_usuario') == 'Funcionario' %}disabled{% endif %}>
+            </div>
+            
+            <div class="col-md-2">
+              <label for="data_inicio" class="form-label fw-bold">Data Início:</label>
+              <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="{{ data_inicio }}">
+            </div>
+            <div class="col-md-2">
+              <label for="data_fim" class="form-label fw-bold">Data Fim:</label>
+              <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ data_fim }}">
+            </div>
+            
+            {# COLUNA PARA BOTÕES FILTRAR E RELATÓRIO (Alinhada ao Fim) #}
+            <div class="col-md-2 d-flex flex-column align-self-end">
+              <button type="submit" class="btn btn-filter w-100 mb-2">
+                <i class="bi bi-filter-fill"></i> Filtrar
+              </button>
+              
+              {# BOTÃO DE RELATÓRIO (Dropdown) com Permissões Corrigidas #}
+              {% if session.get('tipo_usuario') in ['Admin', 'Professor', 'Funcionario_Admin', 'Funcionario'] %}
+              <div class="dropdown d-grid">
+                <button class="btn btn-warning dropdown-toggle" type="button" id="dropdownRelatorio" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-file-earmark-arrow-down-fill"></i> Relatório
+                </button>
+                <ul class="dropdown-menu w-100" aria-labelledby="dropdownRelatorio">
+                  
+                  {# Opções para Módulo Estudantes (Admin/Professor) #}
+                  {% if modulo == 'estudantes' or session.get('tipo_usuario') == 'Professor' %}
+                  <h6 class="dropdown-header">Estudantes e Entradas</h6>
+                  <li><button class="dropdown-item" type="button" onclick="exportarDados('entradas_csv')">Registros de Entrada (CSV)</button></li>
+                  <li><button class="dropdown-item" type="button" onclick="exportarDados('entradas_pdf')">Registros de Entrada (PDF)</button></li>
+                  
+                  {# Exportação de Cadastro Completo (APENAS ADMIN) #}
+                  {% if session.get('tipo_usuario') == 'Admin' %}
+                  <li><hr class="dropdown-divider"></li>
+                  <li><button class="dropdown-item" type="button" onclick="exportarDados('estudantes_csv')">Cadastro Completo (CSV)</button></li>
+                  <li><button class="dropdown-item" type="button" onclick="exportarDados('estudantes_pdf')">Cadastro Completo (PDF)</button></li>
+                  {% endif %}
+
+                  {# Opções para Módulo Funcionários #}
+                  {% elif modulo == 'funcionarios' %}
+                  <h6 class="dropdown-header">Funcionários e Ponto</h6>
+                  <li><button class="dropdown-item" type="button" onclick="exportarDados('ponto_csv')">Registros de Ponto (CSV)</button></li>
+                  <li><button class="dropdown-item" type="button" onclick="exportarDados('ponto_pdf')">Registros de Ponto (PDF)</button></li>
+                  
+                  {# Exportação de Cadastro de Funcionários (ADMIN ou FUNCIONÁRIO ADMIN) #}
+                  {% if session.get('tipo_usuario') in ['Admin', 'Funcionario_Admin'] %}
+                  <li><hr class="dropdown-divider"></li>
+                  <li><button class="dropdown-item" type="button" onclick="exportarDados('funcionarios_csv')">Cadastro de Funcionários (CSV)</button></li>
+                  <li><button class="dropdown-item" type="button" onclick="exportarDados('funcionarios_pdf')">Cadastro de Funcionários (PDF)</button></li>
+                  {% endif %}
+                  
+                  {% endif %}
+                  
+                </ul>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+          <thead class="thead-dark">
+            
+            {# CABEÇALHO PARA ESTUDANTES #}
+            {% if modulo == 'estudantes' or session.get('tipo_usuario') == 'Professor' %}
+            <tr>
+              <th>Data e Hora</th>
+              <th>Nome</th>
+              <th>Número do BI</th>
+              <th>Curso</th>
+              <th>Disciplina</th>
+              <th>Professor</th>
+              <th>Ações</th>
+            </tr>
+            {# CABEÇALHO PARA FUNCIONÁRIOS #}
+            {% elif modulo == 'funcionarios' %}
+            <tr>
+              <th>Data e Hora</th>
+              <th>Tipo de Registo</th>
+              <th>Nome</th>
+              <th>Número do BI</th>
+              <th>Função</th>
+              <th>Departamento</th>
+              <th>Ações</th>
+            </tr>
+            {% endif %}
+
+          </thead>
+          <tbody>
+            
+            {# CORPO PARA ESTUDANTES #}
+            {% if modulo == 'estudantes' or session.get('tipo_usuario') == 'Professor' %}
+            {% for entrada in registros %} 
+            <tr>
+              <td>{{ entrada['data_hora'] }}</td>
+              <td>{{ entrada['nome'] }}</td>
+              <td>{{ entrada['numero_bi'] }}</td>
+              <td>{{ entrada['curso'] }}</td>
+              <td>{{ entrada['nome_disciplina'] or 'N/D' }}</td>
+              <td>{{ entrada['nome_professor'] or 'N/D' }}</td>
+              <td>
+                <button
+                  class="btn btn-sm btn-delete"
+                  onclick="confirmarExclusao({{ entrada['id'] }})"
+                  {% if session.get('tipo_usuario') != 'Admin' %}disabled{% endif %}
+                >
+                  <i class="bi bi-trash-fill"></i> Excluir
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+            
+            {# CORPO PARA FUNCIONÁRIOS #}
+            {% elif modulo == 'funcionarios' %}
+            {% for registro in registros %} 
+            <tr>
+              <td>{{ registro['data_hora'] }}</td>
+              <td><span class="badge bg-{% if registro.tipo_registo == 'ENTRADA' %}success{% else %}danger{% endif %}">{{ registro['tipo_registo'] }}</span></td>
+              <td>{{ registro['nome'] }}</td>
+              <td>{{ registro['numero_bi'] }}</td>
+              <td>{{ registro['funcao'] }}</td>
+              <td>{{ registro['departamento'] }}</td>
+              <td>
+                <button
+                  class="btn btn-sm btn-delete"
+                  onclick="confirmarExclusaoFuncionario({{ registro['id'] }})"
+                  {% if session.get('tipo_usuario') != 'Admin' %}disabled{% endif %}
+                >
+                  <i class="bi bi-trash-fill"></i> Excluir
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+
+          </tbody>
+        </table>
+      </div>
+
+      {# LINKS RÁPIDOS DE CURSO, SÓ VISÍVEIS PARA ESTUDANTES (Admin/Professor) #}
+      {% if modulo == 'estudantes' and session.get('tipo_usuario') in ['Admin', 'Professor'] %}
+      <h3 class="mt-5">Escolher outro curso para filtrar registros</h3>
+      <div class="d-flex flex-wrap justify-content-center">
+        
+        {# LÓGICA CONDICIONAL: SE FOR PROFESSOR, SÓ EXIBE O CURSO PRINCIPAL #}
+        {% if session.get('tipo_usuario') == 'Professor' %}
+          <div class="curso-card">
+            <a
+              href="#"
+              class="curso-link todos active"
+              data-curso="{{ curso_principal_prof }}"
+              >Curso: {{ curso_principal_prof }}</a
+            >
+          </div>
+        {% else %}
+          {# SE FOR ADMIN, EXIBE TODOS OS LINKS DINÂMICOS #}
+          {% for curso_disp in cursos_disponiveis %}
+          <div class="curso-card">
+            <a
+              href="#"
+              class="curso-link {% if curso_disp == 'Informática' %}informática{% elif curso_disp == 'Enfermagem' %}enfermagem{% elif curso_disp == 'Contabilidade' %}contabilidade{% else %}todos{% endif %} {% if curso == curso_disp %}active{% endif %}"
+              data-curso="{{ curso_disp }}"
+              >{{ curso_disp }}</a
+            >
+          </div>
+          {% endfor %}
+          
+          {# BOTÃO 'TODOS' PARA ADMIN #}
+          <div class="curso-card">
+            <a
+              href="#"
+              class="curso-link todos {% if curso == 'Todos' %}active{% endif %}"
+              data-curso="Todos"
+              >Todos</a
+            >
+          </div>
+        {% endif %}
+        
+      </div>
+      {% endif %}
+    </main>
+
+    <script>
+      const menuToggle = document.getElementById("menu-toggle");
+      const sidebar = document.querySelector(".sidebar");
+      const content = document.querySelector(".content");
+      const overlay = document.querySelector(".overlay");
+      
+      const cursoFilterSelect = document.getElementById("curso_filtro"); 
+      const filterForm = document.getElementById("filterForm");
+      const cursoLinks = document.querySelectorAll(".curso-link");
+
+      function isMobile() {
+        return window.innerWidth <= 768;
+      }
+
+      function closeSidebarMobile() {
+        sidebar.classList.remove("active");
+        overlay.classList.remove("active");
+      }
+
+      function openSidebarMobile() {
+        sidebar.classList.add("active");
+        overlay.classList.add("active");
+      }
+
+      menuToggle.addEventListener("click", () => {
+        if (isMobile()) {
+          sidebar.classList.toggle("active");
+          overlay.classList.toggle("active");
+        } else {
+          sidebar.classList.toggle("collapsed");
+          content.classList.toggle("expanded");
+        }
+      });
+
+      overlay.addEventListener("click", closeSidebarMobile);
+
+      window.addEventListener("resize", () => {
+        if (!isMobile()) {
+          sidebar.classList.remove("active");
+          overlay.classList.remove("active");
+          sidebar.classList.remove("collapsed");
+          content.classList.remove("expanded");
+        } else {
+          sidebar.classList.remove("collapsed");
+          content.classList.remove("expanded");
+        }
+      });
+
+      window.addEventListener("load", () => {
+        if (!isMobile()) {
+            sidebar.classList.remove("collapsed");
+            content.classList.remove("expanded");
+        }
+      });
+
+      function confirmarExclusao(id) {
+        if (confirm("Tem certeza que deseja excluir este registro de entrada de estudante?")) {
+          window.location.href = "/excluir_entrada/" + id; 
+        }
+      }
+      
+      function confirmarExclusaoFuncionario(id) {
+        if (confirm("Tem certeza que deseja excluir este registro de ponto de funcionário?")) {
+          window.location.href = "/excluir_ponto/" + id; 
+        }
+      }
+
+
+      // Atualiza o filtro principal quando um link de curso é clicado
+      cursoLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const selectedCurso = e.target.dataset.curso;
+          
+          if (cursoFilterSelect) {
+              // Se for Admin, atualiza o select. Se for Professor, o valor hidden já está lá.
+              if (!cursoFilterSelect.disabled) {
+                  cursoFilterSelect.value = selectedCurso;
+              }
+
+              let moduloInput = filterForm.querySelector('input[name="modulo"]');
+              if (!moduloInput) {
+                  moduloInput = document.createElement('input');
+                  moduloInput.type = 'hidden';
+                  moduloInput.name = 'modulo';
+                  moduloInput.value = 'estudantes'; 
+                  filterForm.appendChild(moduloInput);
+              }
+              
+              filterForm.submit();
+          }
+        });
+      });
+      
+      // Inicialização do Bootstrap Dropdown (necessário para funcionar)
+      document.addEventListener('DOMContentLoaded', function () {
+          var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+          var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+              if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                  return new bootstrap.Dropdown(dropdownToggleEl);
+              }
+              return null;
+          }).filter(n => n);
+      });
+      
+      // FUNÇÃO para exportar dados (CSV/PDF) - OTIMIZADA PARA LIDAR COM CAMPOS DISABLED (hidden)
+      function exportarDados(tipo) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = "{{ url_for('exportar_csv') }}";
+          
+          const tipoInput = document.createElement('input');
+          tipoInput.type = 'hidden';
+          tipoInput.name = 'tipo';
+          tipoInput.value = tipo;
+          form.appendChild(tipoInput);
+
+          // Copia todos os campos de filtro do formulário principal
+          const filterElements = filterForm.elements;
+          for (let i = 0; i < filterElements.length; i++) {
+              const element = filterElements[i];
+              
+              // Inclui campos que:
+              // 1. Têm nome e valor
+              // 2. Não estão desativados (disabled) OU são campos ocultos (type === 'hidden')
+              // 3. E que não são botões de submit/dropdown (só campos de dados)
+              if (element.name && element.value && (!element.disabled || element.type === 'hidden') && element.type !== 'submit' && element.type !== 'button') {
+                  const clone = document.createElement('input');
+                  clone.type = 'hidden';
+                  clone.name = element.name;
+                  clone.value = element.value;
+                  form.appendChild(clone);
+              }
+          }
+          
+          document.body.appendChild(form);
+          form.submit();
+          document.body.removeChild(form);
+      }
+      
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+  </body>
+</html>

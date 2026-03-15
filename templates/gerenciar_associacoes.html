@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Associações</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .disciplina-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .prof-card {
+            border-left: 5px solid #007bff;
+            transition: opacity 0.3s ease;
+        }
+        .offer-badge {
+            font-size: 0.85em;
+            padding: 0.4em 0.6em;
+            margin: 0.2em;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4"><i class="bi bi-link-45deg"></i> Gerenciar Associações Professor - Disciplina</h2>
+       <div class="alert alert-info d-none" id="statusMessage" role="alert"></div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    
+    <div class="card mb-4 bg-light shadow-sm">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <label for="searchProfessor" class="form-label fw-bold"><i class="bi bi-search"></i> Pesquisar Professor:</label>
+                    <input type="text" id="searchProfessor" class="form-control" placeholder="Digite o nome do professor para filtrar a lista..." onkeyup="filterProfessors()">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="accordion" id="accordionProfessores">
+        {% for professor in professores %}
+        
+        {# O data-name agora é essencial para o filtro JS #}
+        <div class="accordion-item prof-card mb-3" data-name="{{ professor.nome | lower }}"> 
+            <h2 class="accordion-header" id="heading-{{ professor.id }}">
+                
+                {# BLOCO CORRIGIDO: O ID DO PROFESSOR FOI REMOVIDO DO TÍTULO DO BOTÃO #}
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                        data-bs-target="#collapse-{{ professor.id }}" aria-expanded="false" 
+                        aria-controls="collapse-{{ professor.id }}">
+                    <strong>{{ professor.nome }}</strong> 
+                    
+                    {# Exibe a lista de cursos (usando 'cursos_atuacao' do backend) #}
+                    {% if professor.cursos_atuacao %}
+                        {% for curso in professor.cursos_atuacao.split(',') %}
+                            <span class="ms-3 badge bg-secondary">{{ curso }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </button>
+            </h2>
+            <div id="collapse-{{ professor.id }}" class="accordion-collapse collapse" 
+                 aria-labelledby="heading-{{ professor.id }}" data-bs-parent="#accordionProfessores">
+                <div class="accordion-body">
+                    
+                    {# EXIBIÇÃO DA ATUAÇÃO (INFORMAÇÃO VITAL PARA O FILTRO) #}
+                    {% if professor.cursos_atuacao %}
+                        <p class="fw-bold text-success">Cursos de Atuação: 
+                            {% for curso in professor.cursos_atuacao.split(',') %}
+                                <span class="badge bg-success me-1">{{ curso }}</span>
+                            {% endfor %}
+                        </p>
+                    {% else %}
+                        <p class="fw-bold text-danger">⚠️ Cursos de Atuação não definidos. **Associe os cursos no menu Editar Professor**.</p>
+                    {% endif %}
+
+                    <p class="fw-bold mt-3">Disciplinas atuais Associadas:</p>
+                    <div class="mb-3">
+                        {% set current_ofertas = associacoes[professor.id] %}
+                        {% if current_ofertas %}
+                            {# INÍCIO DA TABELA COM OPÇÃO DE ELIMINAR (CORRIGIDA) #}
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Disciplina</th>
+                                        <th>Turma</th>
+                                        <th class="text-center">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for oferta in current_ofertas %}
+                                    <tr>
+                                        {# REMOVIDO O ** aqui #}
+                                        <td><strong>{{ oferta.nome_disciplina }}</strong> ({{ oferta.semestre }}º Sem)</td>
+                                        <td>{{ oferta.curso }}, {{ oferta.ano_frequencia }}, {{ oferta.periodo }}</td>
+                                        <td class="text-center">
+                                            {# CORREÇÃO: USANDO UM FORMULÁRIO POST PARA DELETAR #}
+                                            <form method="POST" action="{{ url_for('eliminar_associacao', oferta_id=oferta.id, professor_id=professor.id) }}" style="display:inline;">
+                                                <button type="submit" 
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        title="Eliminar Associação"
+                                                        onclick="return confirm('Tem certeza que deseja desassociar a oferta {{ oferta.nome_disciplina }} ({{ oferta.curso }}, {{ oferta.ano_frequencia }}) do professor {{ professor.nome }}? Ação irreversível.')">
+                                                    <i class="bi bi-x-circle-fill"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {# FIM DA TABELA #}
+                        {% else %}
+                            <span class="badge bg-warning text-dark offer-badge">Nenhuma Disciplina associada.</span>
+                        {% endif %}
+                    </div>
+
+                    <form class="associacao-form" data-professor-id="{{ professor.id }}" data-reload-target="#collapse-{{ professor.id }}">
+                        <input type="hidden" name="professor_id" value="{{ professor.id }}">
+                        
+                        <label class="form-label mt-2">Disciplinas disponíveis:</label>
+                        <div class="row disciplina-list">
+                            
+                            {# PREPARAÇÃO: Criar uma lista de IDs associados para pesquisa rápida no Jinja #}
+                            {% set associated_ids = associacoes[professor.id] | map(attribute='id') | list %}
+                            
+                            {% for oferta in professor.ofertas_para_associar %}
+                                
+                                {# VERIFICAÇÃO FINAL: O campo está marcado se o ID existir na lista de IDs associados #}
+                                {% set is_selected = (oferta.id in associated_ids) %}
+                                
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                                       name="ofertas" value="{{ oferta.id }}" 
+                                                       id="offer-{{ professor.id }}-{{ oferta.id }}"
+                                                       {% if is_selected %}checked{% endif %}>
+                                        <label class="form-check-label" for="offer-{{ professor.id }}-{{ oferta.id }}">
+                                            {# CORRIGIDO: REMOVIDO OS ** AQUI #}
+                                            {{ oferta.nome_disciplina }} ({{ oferta.ano_frequencia }}, {{ oferta.semestre }}º Sem, {{ oferta.periodo }})
+                                        </label>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="col-12">
+                                    {% if professor.cursos_atuacao %}
+                                        <p class="text-muted p-2">Nenhuma disciplina cadastrada para os cursos: {{ professor.cursos_atuacao }}.</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-sm btn-success mt-3" {% if not professor.cursos_atuacao %}disabled{% endif %}>
+                            <i class="bi bi-save-fill"></i> Salvar Associações
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Voltar ao Painel
+        </a>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function filterProfessors() {
+    const input = document.getElementById('searchProfessor');
+    const filter = input.value.toLowerCase();
+    const accordionItems = document.querySelectorAll('.prof-card');
+
+    accordionItems.forEach(item => {
+        const name = item.getAttribute('data-name');
+        
+        if (name.includes(filter)) {
+            item.style.display = "";
+            item.style.opacity = "1";
+        } else {
+            item.style.display = "none";
+            item.style.opacity = "0";
+        }
+    });
+}
+
+document.querySelectorAll('.associacao-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // =========================================================================
+        // Coleta Manual dos dados para evitar falha do FormData
+        // =========================================================================
+        const professorId = this.querySelector('input[name="professor_id"]').value;
+        const ofertasSelecionadas = [];
+        
+        // Coleta explicitamente todos os checkboxes marcados (name="ofertas")
+        this.querySelectorAll('input[name="ofertas"]:checked').forEach(checkbox => {
+            ofertasSelecionadas.push(checkbox.value);
+        });
+
+        // Constrói o corpo da requisição no formato URL-encoded (como um formulário normal)
+        const bodyData = new URLSearchParams();
+        bodyData.append('professor_id', professorId);
+        
+        // Adiciona cada oferta selecionada à lista (name="ofertas")
+        ofertasSelecionadas.forEach(ofertaId => {
+            bodyData.append('ofertas', ofertaId);
+        });
+        // =========================================================================
+        
+        const statusMessage = document.getElementById('statusMessage');
+        const saveButton = this.querySelector('button[type="submit"]');
+
+        // Desabilitar botão e mostrar mensagem de carregamento
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
+        statusMessage.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-info');
+        statusMessage.classList.add('alert-info');
+        statusMessage.textContent = 'Aguarde, salvando associações...';
+
+
+        fetch('{{ url_for("salvar_associacoes") }}', {
+            method: 'POST',
+            // Usa o corpo de dados coletado manualmente
+            body: bodyData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(response => {
+            // Se for um erro (4xx ou 5xx), tenta ler o corpo JSON
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                     throw new Error(errorData.mensagem || `Erro de servidor. Status: ${response.status}`);
+                });
+            }
+            return response.json(); 
+        })
+        .then(data => {
+            if (data.sucesso) {
+                // AÇÃO DE SUCESSO: Exibe mensagem e recarrega imediatamente.
+                statusMessage.classList.replace('alert-info', 'alert-success');
+                statusMessage.textContent = data.mensagem + " Recarregando a página...";
+                
+                // RECARREGAMENTO IMEDIATO
+                window.location.reload();
+                
+            } else {
+                statusMessage.classList.replace('alert-info', 'alert-danger');
+                statusMessage.textContent = "Erro: " + data.mensagem;
+            }
+        })
+        .catch(error => {
+            statusMessage.classList.replace('alert-info', 'alert-danger');
+            statusMessage.textContent = 'Falha ao salvar: ' + error.message; 
+            console.error('Erro na requisição AJAX:', error);
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            saveButton.innerHTML = '<i class="bi bi-save-fill"></i> Salvar Associações';
+        });
+    });
+});
+</script>
+</body>
+</html>

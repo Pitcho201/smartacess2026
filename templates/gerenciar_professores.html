@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Professores</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .table th { background-color: #343a40; color: white; }
+        .prof-row { transition: opacity 0.3s ease; } /* Estilo para a transição do filtro */
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4">Gerenciar Professores</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mb-4">
+        <div class="card-header">Adicionar Novo Professor</div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('gerenciar_professores') }}" id="formAdicionarProfessor">
+                <div class="row g-3 align-items-end">
+                    
+                    <div class="col-md-12 mb-3">
+                        <label for="nome" class="form-label">Nome Completo:</label>
+                        <input type="text" class="form-control" name="nome" placeholder="Nome Completo do Professor" required>
+                    </div>
+                    
+                    {# GRUPO DE CHECKBOXES PARA ADIÇÃO #}
+                    <div class="col-md-12 mb-3 border p-3 rounded">
+                        <label class="form-label fw-bold">Cursos de Atuação (Seleção Múltipla):</label>
+                        <div class="row">
+                            {% for curso in cursos_disponiveis %}
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="cursos_de_atuacao_add" value="{{ curso }}" 
+                                               id="curso-add-{{ loop.index }}">
+                                        <label class="form-check-label" for="curso-add-{{ loop.index }}">
+                                            {{ curso }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <button class="btn btn-success w-100" type="submit">
+                            <i class="bi bi-person-plus-fill"></i> Adicionar Professor
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card mb-4 bg-light shadow-sm">
+        <div class="card-body">
+             <div class="row">
+                <div class="col-md-12">
+                    <label for="searchProf" class="form-label fw-bold"><i class="bi bi-search"></i> Pesquisar por Nome ou Curso:</label>
+                    <input type="text" id="searchProf" class="form-control" placeholder="Digite o nome ou curso do professor..." onkeyup="filterProfessors()">
+                </div>
+             </div>
+        </div>
+    </div>
+    <h3 class="mb-3">Lista de Professores Cadastrados ({{ professores | length }})</h3>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Cursos de Atuação</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="professorsTableBody">
+                {% for professor in professores %}
+                <tr class="prof-row" data-search="{{ professor.nome | lower }} {{ professor.cursos_associados | lower }}">
+                    <td>{{ professor.id }}</td>
+                    <td>{{ professor.nome }}</td>
+                    <td>
+                        {# Exibe a lista de cursos agrupados do banco de dados (GROUP_CONCAT) #}
+                        {% if professor.cursos_associados %}
+                            {% for curso in professor.cursos_associados.split(',') %}
+                                <span class="badge bg-secondary me-1">{{ curso }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">N/D (Definir na Edição)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('editar_professor', id=professor.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                        <a href="{{ url_for('excluir_professor', id=professor.id) }}" 
+                           onclick="return confirm('Tem certeza que deseja excluir o professor {{ professor.nome }}? Esta ação é irreversível se não houver registros associados.')"
+                           class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash-fill"></i> Excluir
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Voltar ao Painel
+        </a>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Lógica para filtrar professores por nome ou curso
+    function filterProfessors() {
+        const input = document.getElementById('searchProf');
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll('#professorsTableBody .prof-row');
+
+        rows.forEach(row => {
+            const searchData = row.getAttribute('data-search');
+            
+            if (searchData.includes(filter)) {
+                row.style.display = '';
+                row.style.opacity = '1';
+            } else {
+                row.style.display = 'none';
+                row.style.opacity = '0';
+            }
+        });
+    }
+
+    // Validação para garantir que o formulário de adição lida com o nome da disciplina
+    document.getElementById('formAdicionarProfessor').addEventListener('submit', function(e) {
+        // A validação de múltiplos cursos é tratada pelo backend (request.form.getlist)
+        // Não é necessário JS extra aqui a menos que queira forçar a seleção de pelo menos um curso.
+        
+        // Exemplo opcional: Forçar a seleção de pelo menos um curso
+        const checkboxes = document.querySelectorAll('input[name="cursos_de_atuacao_add"]:checked');
+        if (checkboxes.length === 0) {
+            // alert("Selecione pelo menos um Curso de Atuação.");
+            // e.preventDefault(); 
+        }
+    });
+</script>
+</body>
+</html>

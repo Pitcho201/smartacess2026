@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Oferta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4">Editar Oferta: {{ oferta.nome_disciplina }} (ID: {{ oferta.id }})</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('editar_oferta', id=oferta.id) }}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="disciplina_id" class="form-label">Disciplina:</label>
+                        <select id="disciplina_id" name="disciplina_id" class="form-select" required>
+                            {% for disc in disciplinas %}
+                                <option value="{{ disc.id }}" {% if disc.id == oferta.disciplina_id %}selected{% endif %}>
+                                    {{ disc.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="curso" class="form-label">Curso:</label>
+                        <select id="curso" name="curso" class="form-select" required>
+                            <option value="Informática" {% if oferta.curso == 'Informática' %}selected{% endif %}>Informática</option>
+                            <option value="Enfermagem" {% if oferta.curso == 'Enfermagem' %}selected{% endif %}>Enfermagem</option>
+                            <option value="Contabilidade" {% if oferta.curso == 'Contabilidade' %}selected{% endif %}>Contabilidade</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="ano_frequencia" class="form-label">Ano:</label>
+                        <select id="ano_frequencia" name="ano_frequencia" class="form-select" required>
+                            <option value="1º Ano" {% if oferta.ano_frequencia == '1º Ano' %}selected{% endif %}>1º Ano</option>
+                            <option value="2º Ano" {% if oferta.ano_frequencia == '2º Ano' %}selected{% endif %}>2º Ano</option>
+                            <option value="3º Ano" {% if oferta.ano_frequencia == '3º Ano' %}selected{% endif %}>3º Ano</option>
+                            <option value="4º Ano" {% if oferta.ano_frequencia == '4º Ano' %}selected{% endif %}>4º Ano</option>
+                            <option value="5º Ano" {% if oferta.ano_frequencia == '5º Ano' %}selected{% endif %}>5º Ano</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="semestre" class="form-label">Semestre:</label>
+                        <select id="semestre" name="semestre" class="form-select" required>
+                            <option value="1" {% if oferta.semestre == 1 %}selected{% endif %}>1º Semestre</option>
+                            <option value="2" {% if oferta.semestre == 2 %}selected{% endif %}>2º Semestre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="periodo" class="form-label">Período:</label>
+                        <select id="periodo" name="periodo" class="form-select" required>
+                            <option value="Regular" {% if oferta.periodo == 'Regular' %}selected{% endif %}>Regular</option>
+                            <option value="Pós-Laboral" {% if oferta.periodo == 'Pós-Laboral' %}selected{% endif %}>Pós-Laboral</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save-fill"></i> Salvar Alterações
+                    </button>
+                    <a href="{{ url_for('gerenciar_oferta') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

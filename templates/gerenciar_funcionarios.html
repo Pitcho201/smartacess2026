@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Funcionários</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Estilos CSS */
+        .table th { background-color: #343a40; color: white; }
+        video, canvas { max-width: 100%; border: 1px solid #ccc; border-radius: 5px; }
+        /* Estilo para a pré-visualização da imagem (Upload e Captura) */
+        #previewFotoManualFunc, #previewCapturaFunc {
+            max-width: 200px; max-height: 200px; border: 1px solid #dee2e6;
+            border-radius: 5px; margin-top: 10px; display: none;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4"><i class="bi bi-person-lines-fill"></i> Gerenciar Funcionários</h2>
+
+    {# Bloco para exibir mensagens flash do Flask #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {# BLOCO DE REGISTRO DE NOVO FUNCIONÁRIO #}
+    <div class="card mb-4">
+        <div class="card-header">Registrar Novo Funcionário</div>
+        <div class="card-body">
+            
+            <form method="POST" action="{{ url_for('gerenciar_funcionarios') }}" enctype="multipart/form-data" id="formFuncionario">
+                
+                <ul class="nav nav-tabs" id="formTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dadosPessoais" type="button" role="tab">Dados de Cargo</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#fotoFuncionario" type="button" role="tab">Foto do Rosto</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content border border-top-0 p-3">
+                    
+                    <div class="tab-pane fade show active" id="dadosPessoais" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nome" class="form-label">Nome Completo:</label>
+                                <input type="text" class="form-control" name="nome" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="numero_bi" class="form-label">Número do BI:</label>
+                                <input type="text" class="form-control" name="numero_bi" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="funcao" class="form-label">Função/Cargo:</label>
+                                <input type="text" class="form-control" name="funcao" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="departamento" class="form-label">Departamento:</label>
+                                <input type="text" class="form-control" name="departamento" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="fotoFuncionario" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label">Selecionar método de envio de foto:</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="metodo_foto" value="upload" id="radioUpload" checked onclick="alternarMetodoFotoFunc()">
+                                <label class="form-check-label" for="radioUpload">Upload Manual</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="metodo_foto" value="camera" id="radioCamera" onclick="alternarMetodoFotoFunc()">
+                                <label class="form-check-label" for="radioCamera">Capturar com Câmera</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="fotoUpload">
+                            <label class="form-label">Foto do rosto (Upload):</label>
+                            <input type="file" class="form-control" name="foto_manual" id="foto_manual_input_func" accept="image/*">
+                            <small class="form-text text-muted">A foto deve mostrar o rosto claramente.</small>
+                            <img id="previewFotoManualFunc" src="#" alt="Pré-visualização da foto de upload">
+                        </div>
+
+                        <div class="mb-3 d-none" id="fotoCamera">
+                            <label for="seletorCamerasFunc" class="form-label">Câmera:</label>
+                            <select id="seletorCamerasFunc" class="form-select"></select>
+                            
+                            <label class="form-label">Pré-visualização:</label><br>
+                            <video id="webcamFunc" autoplay></video>
+                            <img id="previewCapturaFunc" src="#" alt="Foto Capturada" style="display: none;">
+                            
+                            <canvas id="capturaFunc" style="display:none;"></canvas>
+                            <input type="hidden" name="imagem_capturada" id="imagem_capturada_func">
+                            <button type="button" class="btn btn-outline-primary mt-2" onclick="capturarFotoFunc()">📷 Capturar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-success" type="submit">
+                        <i class="bi bi-person-plus-fill"></i> Registrar Funcionário
+                    </button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+    
+    
+    <div class="card mb-4 border-dark">
+        <div class="card-header bg-dark text-white"><i class="bi bi-search"></i> Filtrar e Pesquisar Funcionários</div>
+        <div class="card-body">
+            {# O formulário de filtro usa o método GET para não interferir no POST de registro #}
+            <form method="GET" action="{{ url_for('gerenciar_funcionarios') }}" id="formFiltroFuncionario">
+                <div class="row g-3">
+                    
+                    {# 1. Campo de Termo de Busca (Nome/BI) #}
+                    <div class="col-md-6">
+                        <label for="termo_busca" class="form-label">Nome ou BI:</label>
+                        <input type="text" class="form-control" name="termo" id="termo_busca" placeholder="Pesquisar por nome ou BI..." value="{{ termo if termo is defined else '' }}">
+                    </div>
+                    
+                    {# 2. Filtro de Função #}
+                    <div class="col-md-6">
+                        <label for="funcao_filtro" class="form-label">Função/Cargo:</label>
+                        <select name="funcao" id="funcao_filtro" class="form-select">
+                            <option value="">Todas as Funções</option>
+                            {# Itera sobre os objetos retornados pela consulta DISTINCT do Flask #}
+                            {% for funcao in funcoes_disponiveis %}
+                                <option value="{{ funcao.funcao }}" 
+                                        {% if funcao.funcao == funcao_filtro %}selected{% endif %}>
+                                    {{ funcao.funcao }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    {# 3. Filtro de Departamento #}
+                    <div class="col-md-6">
+                        <label for="departamento_filtro" class="form-label">Departamento:</label>
+                        <select name="departamento" id="departamento_filtro" class="form-select">
+                            <option value="">Todos os Departamentos</option>
+                            {# Itera sobre os objetos retornados pela consulta DISTINCT do Flask #}
+                            {% for dept in departamentos_disponiveis %}
+                                <option value="{{ dept.departamento }}" 
+                                        {% if dept.departamento == departamento_filtro %}selected{% endif %}>
+                                    {{ dept.departamento }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    {# 4. Botão de Busca #}
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button class="btn btn-dark w-100 me-2" type="submit"><i class="bi bi-search"></i> Aplicar Filtros</button>
+                        <a href="{{ url_for('gerenciar_funcionarios') }}" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i> Limpar</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <h3 class="mb-3">Lista de Funcionários Cadastrados ({{ funcionarios | length }})</h3>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>BI</th>
+                    <th>Função</th>
+                    <th>Departamento</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {# Itera sobre a lista de funcionários filtrada #}
+                {% for func in funcionarios %}
+                <tr>
+                    <td>{{ func.id }}</td>
+                    <td>{{ func.nome }}</td>
+                    <td>{{ func.numero_bi }}</td>
+                    <td>{{ func.funcao }}</td>
+                    <td>{{ func.departamento }}</td>
+                    <td>
+                        <a href="{{ url_for('editar_funcionario', id=func.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                        <a href="{{ url_for('excluir_funcionario', id=func.id) }}" 
+                            onclick="return confirm('Tem certeza que deseja excluir o funcionário {{ func.nome }}?')"
+                            class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash-fill"></i> Excluir
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not funcionarios %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Nenhum funcionário encontrado com os filtros aplicados.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Voltar ao Painel
+        </a>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // =======================================================
+    // JAVASCRIPT: Lógica de Câmera e Submissão AJAX (Registro)
+    // =======================================================
+    
+    // VARIÁVEIS GLOBAIS
+    let currentStreamFunc = null;
+    const videoFunc = document.getElementById('webcamFunc');
+    const canvasFunc = document.getElementById('capturaFunc');
+    const inputCapturaFunc = document.getElementById('imagem_capturada_func');
+    const seletorFunc = document.getElementById('seletorCamerasFunc');
+    const fotoManualInputFunc = document.getElementById('foto_manual_input_func');
+    const previewFotoManualFunc = document.getElementById('previewFotoManualFunc');
+    const previewCapturaFunc = document.getElementById('previewCapturaFunc');
+
+    // Funções de Câmera
+    function loadCamerasFunc(deviceId = null) {
+        if (currentStreamFunc) {
+            currentStreamFunc.getTracks().forEach(track => track.stop());
+        }
+        
+        if (!deviceId) return;
+
+        videoFunc.style.display = 'block';
+        previewCapturaFunc.style.display = 'none';
+
+        navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } } })
+            .then(stream => {
+                currentStreamFunc = stream;
+                videoFunc.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Erro ao acessar webcam", err);
+                alert("Erro ao acessar a câmera selecionada. Verifique as permissões.");
+            });
+    }
+
+    function enumerateCamerasFunc() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                stream.getTracks().forEach(track => track.stop());
+                
+                navigator.mediaDevices.enumerateDevices()
+                    .then(devices => {
+                        seletorFunc.innerHTML = '';
+                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                        
+                        if (videoDevices.length === 0) {
+                            seletorFunc.innerHTML = '<option value="">Nenhuma Câmera Encontrada</option>';
+                            return;
+                        }
+
+                        seletorFunc.innerHTML = '<option value="">-- Selecionar Câmera --</option>';
+                        videoDevices.forEach((device, index) => {
+                            const option = document.createElement('option');
+                            option.value = device.deviceId;
+                            option.text = device.label || `Câmera ${index + 1}`;
+                            seletorFunc.appendChild(option);
+                        });
+                        
+                        const metodo = document.querySelector('input[name="metodo_foto"]:checked').value;
+                        if (videoDevices.length > 0 && metodo === 'camera') {
+                            seletorFunc.value = videoDevices[0].deviceId;
+                            loadCamerasFunc(videoDevices[0].deviceId);
+                        }
+                    })
+                    .catch(err => console.error("Erro ao enumerar câmeras: ", err));
+            })
+            .catch(err => {
+                console.warn("Permissão de câmera negada ou erro de hardware.");
+                seletorFunc.innerHTML = '<option value="">Permissão Necessária / Câmera Indisponível</option>';
+            });
+    }
+    
+    seletorFunc.onchange = function () {
+        loadCamerasFunc(this.value);
+    };
+
+    function mostrarPreviewUploadFunc() {
+        const file = fotoManualInputFunc.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewFotoManualFunc.src = e.target.result;
+                previewFotoManualFunc.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewFotoManualFunc.src = '#';
+            previewFotoManualFunc.style.display = 'none';
+        }
+    }
+
+    fotoManualInputFunc.addEventListener('change', mostrarPreviewUploadFunc);
+
+
+    function alternarMetodoFotoFunc() {
+        const metodo = document.querySelector('input[name="metodo_foto"]:checked').value;
+        const cameraBlock = document.getElementById('fotoCamera');
+        const uploadBlock = document.getElementById('fotoUpload');
+
+        uploadBlock.classList.toggle('d-none', metodo !== 'upload');
+        cameraBlock.classList.toggle('d-none', metodo !== 'camera');
+        
+        inputCapturaFunc.value = '';
+        videoFunc.style.display = 'block';
+        previewCapturaFunc.style.display = 'none';
+        
+        if (metodo === 'camera') {
+            if (seletorFunc.options.length <= 1) {
+                enumerateCamerasFunc();
+            } else {
+                loadCamerasFunc(seletorFunc.value);
+            }
+            previewFotoManualFunc.style.display = 'none';
+        } else {
+            if (currentStreamFunc) {
+                currentStreamFunc.getTracks().forEach(track => track.stop());
+                currentStreamFunc = null;
+                videoFunc.srcObject = null;
+            }
+            mostrarPreviewUploadFunc();
+        }
+    }
+
+    function capturarFotoFunc() {
+        if (!currentStreamFunc) {
+            alert("Erro: Nenhuma câmera ativa. Selecione uma câmera.");
+            return;
+        }
+        
+        canvasFunc.width = videoFunc.videoWidth;
+        canvasFunc.height = videoFunc.videoHeight;
+        canvasFunc.getContext('2d').drawImage(videoFunc, 0, 0);
+        const imagem = canvasFunc.toDataURL('image/jpeg');
+        inputCapturaFunc.value = imagem;
+
+        currentStreamFunc.getTracks().forEach(track => track.stop());
+        currentStreamFunc = null;
+        videoFunc.srcObject = null;
+        
+        videoFunc.style.display = 'none';
+        previewCapturaFunc.src = imagem;
+        previewCapturaFunc.style.display = 'block';
+
+        alert("✅ Foto capturada com sucesso! Não se esqueça de salvar o registro.");
+    }
+    
+    // LÓGICA DE SUBMISSÃO AJAX (REGISTRO)
+    document.getElementById('formFuncionario').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const form = e.target;
+        let valido = true;
+        const nome = form.querySelector('input[name="nome"]').value.trim();
+        const bi = form.querySelector('input[name="numero_bi"]').value.trim();
+        if (!nome || !bi) {
+             alert("Por favor, preencha o Nome e o BI.");
+             valido = false;
+        }
+        
+        const metodo = document.querySelector('input[name="metodo_foto"]:checked').value;
+        const uploadFile = document.querySelector('input[name="foto_manual"]').files.length;
+        const capturada = inputCapturaFunc.value.length > 0;
+        
+        if (metodo === 'upload' && !uploadFile && !previewFotoManualFunc.src.startsWith('data:')) {
+            alert("Selecione um arquivo de foto.");
+            valido = false;
+        } else if (metodo === 'camera' && !capturada) {
+            alert("Capture uma foto com a câmera antes de registrar.");
+            valido = false;
+        }
+        
+        if (!valido) return;
+        
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Registrando...';
+        
+        try {
+            const formData = new FormData(form);
+            
+            let response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json(); 
+
+            if (response.ok && result.sucesso) {
+                
+                // Recarrega o cache após o registro e salvamento da foto
+                if (result.foto_atualizada) {
+                    await fetch('{{ url_for("recarregar_rostos") }}', { method: 'POST' });
+                }
+                
+                alert(`✅ Sucesso! ${result.mensagem}`);
+                // Redireciona para recarregar a página com o novo funcionário
+                window.location.href = '{{ url_for("gerenciar_funcionarios") }}'; 
+                
+            } else {
+                alert(`❌ Falha no Registro: ${result.mensagem}`);
+            }
+
+        } catch (error) {
+            console.error('Erro de rede/servidor:', error);
+            alert(`❌ Erro Inesperado: Não foi possível completar a operação.`);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="bi bi-person-plus-fill"></i> Registrar Funcionário';
+        }
+    });
+
+    // Inicialização da Câmera
+    document.addEventListener('DOMContentLoaded', enumerateCamerasFunc); 
+    document.addEventListener('DOMContentLoaded', alternarMetodoFotoFunc);
+</script>
+</body>
+</html>

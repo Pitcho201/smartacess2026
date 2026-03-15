@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SmartAccess IMTS-VITALIS Bié</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #bbdefb 0%, #e1bee7 100%); /* Mesmo gradiente da página inicial */
+            color: white; /* Texto branco para melhor contraste */
+            overflow: hidden; /* Para conter as ondas de fundo */
+        }
+
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.9); /* Fundo branco translúcido */
+            padding: 40px;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
+            width: 100%;
+            max-width: 450px; /* Aumentei um pouco a largura */
+            text-align: center;
+            z-index: 10; /* Para ficar acima das ondas */
+        }
+
+        .logo-container {
+            margin-bottom: 2rem;
+            animation: fadeInDown 1s ease-in-out; /* Animação de entrada */
+        }
+
+        .logo-container img {
+            width: 100px;
+            border-radius: 50%;
+            box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            animation: fadeInUp 1s ease-in-out 0.2s; /* Animação de entrada com delay */
+        }
+
+        .form-control {
+            margin-bottom: 1.5rem; /* Ajustado para dar espaço ao alerta */
+            border: 1px solid #ced4da;
+            border-radius: 0.5rem;
+            padding: 12px;
+            font-size: 1rem;
+            animation: fadeIn 0.8s ease-in-out 0.4s; /* Animação de entrada com delay */
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.25);
+        }
+
+        .btn-login {
+            background-color: var(--primary-color); /* Usando a cor primária para o botão de login */
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 0.5rem;
+            width: 100%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            animation: fadeInUp 1s ease-in-out 0.6s; /* Animação de entrada com delay */
+            box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-login:hover {
+            background-color: darken(var(--primary-color), 10%);
+            transform: translateY(-2px);
+            box-shadow: 0 0.3rem 0.7rem rgba(0, 0, 0, 0.15);
+        }
+
+        .back-link {
+            margin-top: 2rem;
+            animation: fadeInUp 1s ease-in-out 0.8s; /* Animação de entrada com delay */
+        }
+
+        .back-link a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: darken(var(--secondary-color), 20%);
+            text-decoration: underline;
+        }
+
+        /* Ondas de fundo animadas */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('{{ url_for('static', filename='img/wave.png') }}') repeat-x; /* Substitua pelo caminho da sua imagem de onda */
+            animation: wave 4s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+            opacity: 0.7;
+            z-index: 1;
+        }
+
+        .wave:nth-child(2) {
+            animation-delay: -2s;
+            opacity: 0.5;
+            height: 80px;
+        }
+
+        @keyframes wave {
+            0% {
+                transform: translate3d(-90px, 0, 0);
+            }
+            100% {
+                transform: translate3d(85px, 0, 0);
+            }
+        }
+
+        /* Animações de entrada */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilo para a mensagem de erro */
+        .alert-login {
+            margin-bottom: 1.5rem; /* Espaço abaixo do alerta */
+            animation: fadeIn 0.5s ease-out; /* Animação para o alerta */
+        }
+    </style>
+</head>
+<body>
+    <div class="wave"></div>
+    <div class="wave wave:nth-child(2)"></div>
+    <div class="login-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/vitalis.png') }}" alt="Logo ISPBié" class="img-fluid rounded-circle">
+        </div>
+        <h2 class="mb-4">Acesso Administrativo</h2>
+
+        {# AQUI É ONDE AS MENSAGENS DE ERRO SERÃO EXIBIDAS #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show alert-login" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="mb-3">
+                <label for="usuario" class="form-label visually-hidden">Usuário:</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                    <input type="text" class="form-control" name="usuario" placeholder="Usuário" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="senha" class="form-label visually-hidden">Senha:</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                    <input type="password" class="form-control" name="senha" placeholder="Senha" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-login">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Entrar
+            </button>
+        </form>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('index') }}" class="back-link">
+                <i class="bi bi-arrow-left-circle-fill me-2"></i> Voltar
+            </a>
+        </div>
+    </div>
+    {# Use bootstrap.bundle.min.js para incluir Popper e o JS dos componentes (como alert dismiss) #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Opcional: Fazer o alerta desaparecer automaticamente após X segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert-login');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    if (alert.classList.contains('show')) { // Apenas tenta fechar se ainda estiver visível
+                        bsAlert.close();
+                    }
+                }, 5000); // 5000 milissegundos = 5 segundos
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Ofertas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .table th { background-color: #343a40; color: white; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4"><i class="bi bi-calendar-check-fill"></i> Gerenciar Oferta de Disciplinas</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mb-4">
+        <div class="card-header">Adicionar Nova Oferta (Definição da Grade)</div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('gerenciar_oferta') }}" id="formOferta">
+                <div class="row g-3">
+                    
+                    <div class="col-md-6">
+                        <label for="disciplina_existente_id" class="form-label">Disciplina Existente:</label>
+                        <select id="disciplina_existente_id" name="disciplina_existente_id" class="form-select">
+                            <option value="">-- Selecionar Existente --</option>
+                            {% for disc in disciplinas %}
+                                <option value="{{ disc.id }}">{{ disc.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="novo_nome_disciplina" class="form-label">OU Digitar Nova Disciplina:</label>
+                        <input type="text" id="novo_nome_disciplina" name="novo_nome_disciplina" class="form-control" placeholder="Ex: Algoritmos e Estrutura de Dados">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="curso" class="form-label">Curso:</label>
+                        <select id="curso" name="curso" class="form-select" required>
+                            <option value="">Selecione o Curso</option>
+                            <option value="Informática">Informática</option>
+                            <option value="Enfermagem">Enfermagem</option>
+                            <option value="Contabilidade">Contabilidade</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="ano_frequencia" class="form-label">Ano:</label>
+                        <select id="ano_frequencia" name="ano_frequencia" class="form-select" required>
+                            <option value="">Selecione o Ano</option>
+                            <option value="1º Ano">1º Ano</option>
+                            <option value="2º Ano">2º Ano</option>
+                            <option value="3º Ano">3º Ano</option>
+                            <option value="4º Ano">4º Ano</option>
+                            <option value="5º Ano">5º Ano</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="semestre" class="form-label">Semestre:</label>
+                        <select id="semestre" name="semestre" class="form-select" required>
+                            <option value="">Semestre</option>
+                            <option value="1">1º Semestre</option>
+                            <option value="2">2º Semestre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="periodo" class="form-label">Período:</label>
+                        <select id="periodo" name="periodo" class="form-select" required>
+                            <option value="">Selecione o Período</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Pós-Laboral">Pós-Laboral</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-12 text-center">
+                        <button class="btn btn-success mt-2" type="submit">
+                            <i class="bi bi-plus-circle-fill"></i> Registrar Oferta
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <h3 class="mb-3">Ofertas Cadastradas ({{ ofertas | length }})</h3>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Disciplina</th>
+                    <th>Curso</th>
+                    <th>Ano</th>
+                    <th>Semestre</th>
+                    <th>Período</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for oferta in ofertas %}
+                <tr>
+                    <td>{{ oferta.id }}</td>
+                    <td>{{ oferta.nome_disciplina }}</td>
+                    <td>{{ oferta.curso }}</td>
+                    <td>{{ oferta.ano_frequencia }}</td>
+                    <td>{{ oferta.semestre }}º</td>
+                    <td>{{ oferta.periodo }}</td>
+                    <td>
+                        <a href="{{ url_for('editar_oferta', id=oferta.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                        <a href="{{ url_for('excluir_oferta', id=oferta.id) }}" 
+                           onclick="return confirm('Tem certeza que deseja excluir esta oferta? Isto pode afetar associações com professores.')"
+                           class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash-fill"></i> Excluir
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Voltar ao Painel
+        </a>
+        <a href="{{ url_for('listar_associacoes') }}" class="btn btn-info">
+            <i class="bi bi-link-45deg"></i> Associar Ofertas a Professores
+        </a>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.getElementById('formOferta').addEventListener('submit', function(e) {
+    const existente = document.getElementById('disciplina_existente_id').value;
+    const nova = document.getElementById('novo_nome_disciplina').value.trim();
+
+    if (!existente && !nova) {
+        alert("Por favor, selecione uma disciplina existente OU digite o nome de uma nova disciplina.");
+        e.preventDefault();
+        return false;
+    }
+    if (existente && nova) {
+        alert("Você deve selecionar APENAS uma disciplina existente OU digitar APENAS um novo nome. Não ambos.");
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
+</body>
+</html>

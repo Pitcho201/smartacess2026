@@ -1,0 +1,144 @@
+# =========================
+
+# 🔵 AMBIENTES VIRTUAIS
+
+# =========================
+
+venv/
+venv39/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# =========================
+
+# 🔵 PYTHON CACHE
+
+# =========================
+
+**pycache**/
+*.pyc
+*.pyo
+*.pyd
+*.pyc.*
+
+# =========================
+
+# 🔵 MODELOS PESADOS (IA / FACE RECOGNITION)
+
+# =========================
+
+*.dat
+*.pkl
+*.model
+*.h5
+*.pt
+*.onnx
+
+# =========================
+
+# 🔵 IMAGENS E CAPTURAS DO SISTEMA
+
+# =========================
+
+known_faces/
+capturas/
+dataset/
+faces/
+uploads/
+temp_faces/
+
+# =========================
+
+# 🔵 VÍDEOS E MÍDIA PESADA
+
+# =========================
+
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.zip
+*.rar
+*.7z
+
+# =========================
+
+# 🔵 BASE DE DADOS LOCAL
+
+# =========================
+
+*.db
+*.sqlite3
+*.db-journal
+
+# =========================
+
+# 🔵 LOGS E TEMPORÁRIOS
+
+# =========================
+
+*.log
+logs/
+tmp/
+temp/
+
+# =========================
+
+# 🔵 SISTEMA OPERATIVO
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# 🔵 IDE / EDITORES
+
+# =========================
+
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# =========================
+
+# 🔵 BUILD / SERVIÇOS
+
+# =========================
+
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# =========================
+
+# 🔵 DLIB SOURCE / COMPILAÇÃO
+
+# =========================
+
+dlib-19.24/
+cmake_build/
+
+# =========================
+
+# 🔵 VARIÁVEIS DE AMBIENTE
+
+# =========================
+
+.env
+.env.local
+
+# =========================
+
+# 🔵 SERVIDORES LOCAIS
+
+# =========================
+
+instance/
+flask_session/

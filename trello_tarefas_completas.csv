@@ -1,0 +1,21 @@
+ID,Nome,Inicio,Fim,Duração,Predecessora,Responsável,Prioridade,Status,Categoria
+1,Definir os requisitos do sistema,2025-07-01,2025-07-04,3,,Analista,Alta,Pendente,Planejamento
+2,Criar as histórias de usuário,2025-07-04,2025-07-06,2,1,Analista,Alta,Pendente,Planejamento
+3,Criar cronograma no Microsoft Project,2025-07-04,2025-07-06,2,1,PM,Alta,Pendente,Planejamento
+4,Selecionar ferramentas e tecnologias,2025-07-06,2025-07-08,2,1,Analista,Média,Pendente,Planejamento
+5,Modelar casos de uso (UML),2025-07-08,2025-07-10,2,"2,3",Designer,Alta,Pendente,Modelagem
+6,Criar DER (modelo entidade-relacionamento),2025-07-10,2025-07-12,2,"2,3",DBA,Alta,Pendente,Modelagem
+7,Desenhar protótipos das interfaces,2025-07-12,2025-07-15,3,5,Designer,Alta,Pendente,Design
+8,Definir arquitetura MVC + camadas,2025-07-12,2025-07-14,2,4,Arquiteto,Alta,Pendente,Arquitetura
+9,Planejar rotas e estrutura do BD,2025-07-14,2025-07-16,2,6,DBA,Alta,Pendente,Modelagem
+10,Criar estrutura inicial do projeto,2025-07-16,2025-07-19,3,"7,8,9",Dev Backend,Alta,Pendente,Desenvolvimento
+11,Implementar cadastro de estudantes,2025-07-19,2025-07-22,3,10,Dev Backend,Alta,Pendente,Desenvolvimento
+12,Upload e armazenamento da imagem facial,2025-07-22,2025-07-24,2,11,Dev Backend,Alta,Pendente,Desenvolvimento
+13,Desenvolver módulo de reconhecimento facial,2025-07-24,2025-07-28,4,12,IA/ML,Alta,Pendente,Desenvolvimento
+14,Integrar módulo com banco de dados,2025-07-28,2025-07-30,2,13,Dev Backend,Alta,Pendente,Desenvolvimento
+15,Adicionar painel administrativo,2025-07-30,2025-08-01,2,14,Dev Frontend,Média,Pendente,Desenvolvimento
+16,Testar funcionalidades,2025-08-01,2025-08-04,3,15,QA,Alta,Pendente,Testes
+17,Executar testes de usabilidade,2025-08-04,2025-08-06,2,16,UX,Média,Pendente,Testes
+18,Corrigir falhas identificadas,2025-08-06,2025-08-09,3,17,Dev Backend,Alta,Pendente,Testes
+19,Integrar e validar o sistema,2025-08-09,2025-08-11,2,18,QA,Alta,Pendente,Validação
+20,Entrega final e treinamento de usuários,2025-08-11,2025-08-13,2,19,PM,Alta,Pendente,Entrega

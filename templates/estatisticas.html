@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Estatísticas Mensais - SmartAccess ISPBié</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      :root {
+        --primary-color: #0056b3; 
+        --secondary-color: #f8f9fa; 
+        --dark-color: #212529; 
+        --link-hover-color: #007bff;
+        --sidebar-width: 250px;
+      }
+
+      /* --- GERAL E LAYOUT --- */
+      body {
+        background-color: var(--secondary-color);
+        overflow-x: hidden;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      /* --- SIDEBAR (Barra Lateral) --- */
+      .sidebar {
+        background-color: var(--dark-color);
+        color: white;
+        padding-top: 0;
+        height: 100vh;
+        position: fixed;
+        width: var(--sidebar-width);
+        top: 0;
+        left: 0;
+        z-index: 1040;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, width 0.3s ease;
+        overflow-y: auto;
+      }
+
+      .sidebar.collapsed {
+        transform: translateX(calc(-1 * var(--sidebar-width)));
+      }
+
+      .sidebar-logo {
+        padding: 20px 0;
+        text-align: center;
+        margin-bottom: 20px;
+        background-color: #171a1d; 
+        width: 100%;
+      }
+
+      .sidebar-logo img {
+        max-width: 80px;
+        border-radius: 50%;
+        border: 3px solid var(--primary-color);
+        margin-bottom: 10px;
+        box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.1);
+      }
+
+      .sidebar h4 {
+        margin-top: 5px;
+        color: white;
+        font-weight: 600;
+      }
+
+      /* Links de navegação */
+      .sidebar .nav-link {
+        padding: 12px 25px;
+        color: #ced4da;
+        border-left: 5px solid transparent;
+        transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
+      }
+
+      .sidebar .nav-link:hover {
+        background-color: #343a40;
+        color: white;
+      }
+      
+      .sidebar .nav-link.active {
+        color: white;
+        background-color: #343a40;
+        border-left-color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      /* Dropdown no Sidebar */
+      .sidebar .dropdown-menu {
+        background-color: #343a40;
+        padding: 0;
+      }
+      .sidebar .dropdown-item {
+        color: #ced4da;
+        padding: 10px 25px 10px 40px;
+      }
+      .sidebar .dropdown-item:hover {
+        background-color: #495057;
+        color: white;
+      }
+
+      /* --- BOTÃO DE TOGGLE --- */
+      #menu-toggle {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1100;
+        font-size: 1.5rem;
+        color: white;
+        background-color: var(--primary-color);
+        border-radius: 5px;
+        padding: 5px 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        border: none;
+        cursor: pointer;
+      }
+
+      #menu-toggle:hover {
+        background-color: var(--link-hover-color);
+      }
+      
+      /* --- CONTEÚDO PRINCIPAL --- */
+      .content {
+        margin-left: var(--sidebar-width);
+        padding: 20px 30px;
+        transition: margin-left 0.3s ease;
+      }
+
+      .content.expanded {
+        margin-left: 0;
+      }
+      
+      @media (min-width: 769px) {
+        .content {
+          padding-top: 70px;
+        }
+      }
+
+      /* --- OVERLAY --- */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1030;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+      }
+
+      .overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      /* Estilos para esta página específica */
+      .filter-section {
+        background-color: white;
+        padding: 25px;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+      }
+
+      .form-label {
+        font-weight: bold;
+        color: var(--dark-color);
+      }
+      
+      /* Estilos dos Cards Min/Max */
+      .min-max-card {
+        text-align: center;
+        border-radius: 0.5rem;
+        padding: 15px;
+        color: white;
+        font-weight: 600;
+        transition: transform 0.3s;
+      }
+      .min-max-card:hover {
+        transform: translateY(-2px);
+      }
+      .min-max-card h5 {
+        font-size: 1rem;
+        margin-bottom: 5px;
+      }
+      .min-max-card .frequencia-count {
+        font-size: 2.2rem;
+        line-height: 1;
+        margin-top: 0;
+      }
+      
+      /* Responsividade para esta página */
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 250px;
+          transform: translateX(-250px);
+        }
+        #menu-toggle {
+          background-color: #343a40;
+          left: 10px;
+        }
+        .content {
+          padding: 20px 15px;
+        }
+        .col-md-3 {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .d-flex.align-items-end {
+            align-items: flex-start !important;
+        }
+      }
+    </style>
+</head>
+<body>
+    <button id="menu-toggle" aria-label="Toggle menu">
+        <i class="bi bi-list"></i>
+    </button>
+    
+    {# INÍCIO DA BARRA LATERAL (Sidebar - Base do Dashboard) #}
+    <nav class="sidebar" role="navigation" aria-label="Sidebar navigation">
+        <div class="sidebar-logo">
+            <img
+                src="{{ url_for('static', filename='img/logo.jpg') }}"
+                alt="Logo ISPBié"
+            />
+            <h4>Acesso Inteligente - ISPBIE</h4>         {% if session.get('usuario') %}
+              <p class="logged-user"><i class="bi bi-person-circle"></i> <b>{{ session.get('usuario') }}</b></p>         {% endif %}
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a
+                    class="nav-link" 
+                    href="{{ url_for('dashboard', modulo='estudantes') }}"
+                >
+                    <i class="bi bi-house-door-fill"></i> Painel
+                </a>
+            </li>
+            
+            {# BLOCO DE LINKS EXCLUSIVOS DE ADMIN/GESTÃO #}
+            {% if session.get('tipo_usuario') in ['Admin', 'Funcionario_Admin'] %}
+            
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('entradas') }}">
+                <i class="bi bi-people-fill"></i> Lista de Estudantes
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('registrar') }}">
+                <i class="bi bi-person-plus-fill"></i> Registrar Estudante
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('gerenciar_funcionarios') }}">
+                <i class="bi bi-person-lines-fill"></i> Gerenciar Funcionários
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('gerenciar_professores') }}">
+                <i class="bi bi-person-badge-fill"></i> Gerenciar Professores
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('gerenciar_oferta') }}"> 
+                <i class="bi bi-book-fill"></i> Gerenciar Ofertas
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('listar_associacoes') }}">
+                <i class="bi bi-link-45deg"></i> Associar Prof/Oferta
+              </a>
+            </li>
+            
+            {# DROP DOWN: GERIR CREDENCIAIS #}
+            <li class="nav-item dropdown">
+              <a 
+                class="nav-link dropdown-toggle" 
+                href="#" 
+                id="credenciaisDropdown" 
+                role="button" 
+                data-bs-toggle="dropdown" 
+                aria-expanded="false"
+              >
+                <i class="bi bi-shield-lock-fill"></i> Gerir Credenciais</a>
+              <ul class="dropdown-menu" aria-labelledby="credenciaisDropdown">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('gerenciar_credenciais_prof') }}">
+                    <i class="bi bi-person-badge"></i> Professores
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('gerenciar_credenciais_func') }}">
+                    <i class="bi bi-person-lines-fill"></i> Funcionários
+                  </a>
+                </li>
+              </ul>
+            </li>
+            {# FIM DO BLOCO DE LINKS EXCLUSIVOS DE ADMIN/GESTÃO #}
+            {% endif %}
+
+            {# LINK DE ESTATÍSTICAS (Visível para todos os perfis de monitoramento/gestão) #}
+            {% if session.get('tipo_usuario') in ['Admin', 'Professor', 'Funcionario', 'Funcionario_Admin'] %}
+            <li class="nav-item">
+              <a class="nav-link active" href="{{ url_for('estatisticas') }}">
+                <i class="bi bi-graph-up"></i> Estatísticas Mensais
+              </a>
+            </li>
+            {% endif %}
+            
+            {# Link Opções (Apenas Admin) #}
+            {% if session.get('tipo_usuario') == 'Admin' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('opcoes') }}">
+                <i class="bi bi-gear-fill"></i> Opções
+              </a>
+            </li>
+            {% endif %}
+            
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('logout') }}">
+                <i class="bi bi-box-arrow-left"></i> Sair
+              </a>
+            </li>
+        </ul>
+    </nav>
+    {# FIM DA BARRA LATERAL #}
+
+    <div class="overlay"></div>
+
+    <main class="content" role="main">
+        <h1 class="mb-4 display-5 text-primary">
+            <i class="bi bi-graph-up"></i> Estatísticas Mensais
+        </h1>
+        
+        <div class="filter-section mb-4">
+            <h4 class="mb-3 text-secondary">Filtros de Período e Módulo</h4>
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="modulo_select" class="form-label fw-bold">Módulo</label>
+                    <select id="modulo_select" class="form-select">
+                        {% if tipo_usuario in ['Admin', 'Professor'] %}
+                        <option value="estudantes" selected>Estudantes (Presença)</option>
+                        {% endif %}
+                        {% if tipo_usuario in ['Admin', 'Funcionario_Admin', 'Funcionario'] %}
+                        <option value="funcionarios" {% if tipo_usuario != 'Professor' and tipo_usuario != 'Admin' %}selected{% endif %}>Funcionários (Ponto)</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="mes_select" class="form-label fw-bold">Mês</label>
+                    <input type="number" id="mes_select" class="form-control" value="{{ now().month }}" min="1" max="12">
+                </div>
+                <div class="col-md-3">
+                    <label for="ano_select" class="form-label fw-bold">Ano</label>
+                    <input type="number" id="ano_select" class="form-control" value="{{ now().year }}" min="2020">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button id="aplicar_filtros" class="btn btn-primary w-100 shadow-sm">
+                        <i class="bi bi-funnel-fill"></i> Aplicar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4" id="min_max_cards">
+            <div class="col-md-6">
+                <div class="min-max-card bg-danger">
+                    <h5 class="text-uppercase"><i class="bi bi-dash-circle-fill"></i> Mínima Frequência</h5>
+                    <p id="min_nome">--</p>
+                    <p class="frequencia-count" id="min_count">0</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="min-max-card bg-success">
+                    <h5 class="text-uppercase"><i class="bi bi-plus-circle-fill"></i> Máxima Frequência</h5>
+                    <p id="max_nome">--</p>
+                    <p class="frequencia-count" id="max_count">0</p>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="estatisticas_content" class="filter-section p-4 mb-4">
+            <p class="text-center text-muted">Aguardando dados...</p>
+        </div>
+        
+        <div class="filter-section p-4 mt-4 shadow-lg">
+            <h4 class="mb-3">Visualização Gráfica</h4>
+            <div style="height: 450px;">
+                <canvas id="grafico_mensal"></canvas>
+            </div>
+        </div>
+
+        </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        // Lógica de Sidebar e Toggle (Necessária para manter a base)
+        const menuToggle = document.getElementById("menu-toggle");
+        const sidebar = document.querySelector(".sidebar");
+        const content = document.querySelector(".content");
+        const overlay = document.querySelector(".overlay");
+        
+        function isMobile() { return window.innerWidth <= 768; }
+        function closeSidebarMobile() { sidebar.classList.remove("active"); overlay.classList.remove("active"); }
+        function openSidebarMobile() { sidebar.classList.add("active"); overlay.classList.add("active"); }
+
+        menuToggle.addEventListener("click", () => {
+            if (isMobile()) {
+              sidebar.classList.toggle("active");
+              overlay.classList.toggle("active");
+            } else {
+              sidebar.classList.toggle("collapsed");
+              content.classList.toggle("expanded");
+            }
+        });
+        overlay.addEventListener("click", closeSidebarMobile);
+        window.addEventListener("resize", () => {
+            if (!isMobile()) {
+                sidebar.classList.remove("active");
+                overlay.classList.remove("active");
+                sidebar.classList.remove("collapsed");
+                content.classList.remove("expanded");
+            } else {
+                sidebar.classList.remove("collapsed");
+                content.classList.remove("expanded");
+            }
+        });
+        window.addEventListener("load", () => {
+            if (!isMobile()) {
+                sidebar.classList.remove("collapsed");
+                content.classList.remove("expanded");
+            }
+        });
+
+
+        // Lógica de Estatísticas e Chart.js
+        document.addEventListener('DOMContentLoaded', function() {
+            const moduloSelect = document.getElementById('modulo_select');
+            const mesInput = document.getElementById('mes_select');
+            const anoInput = document.getElementById('ano_select');
+            const aplicarBtn = document.getElementById('aplicar_filtros');
+            const contentDiv = document.getElementById('estatisticas_content');
+            const graficoCanvas = document.getElementById('grafico_mensal');
+            const minNome = document.getElementById('min_nome');
+            const minCount = document.getElementById('min_count');
+            const maxNome = document.getElementById('max_nome');
+            const maxCount = document.getElementById('max_count');
+            let myChart = null; 
+
+            function atualizarMinMax(dados) {
+                const minData = dados.min_frequencia;
+                const maxData = dados.max_frequencia;
+
+                if (minData) {
+                    minNome.textContent = minData.nome || 'N/D';
+                    minCount.textContent = minData.frequencia.toLocaleString('pt-AO');
+                } else {
+                    minNome.textContent = '--';
+                    minCount.textContent = '0';
+                }
+
+                if (maxData) {
+                    maxNome.textContent = maxData.nome || 'N/D';
+                    maxCount.textContent = maxData.frequencia.toLocaleString('pt-AO');
+                } else {
+                    maxNome.textContent = '--';
+                    maxCount.textContent = '0';
+                }
+            }
+
+
+            // Função principal para buscar e renderizar os dados
+            function carregarEstatisticas() {
+                const modulo = moduloSelect.value;
+                const mes = mesInput.value;
+                const ano = anoInput.value;
+
+                if (!mes || !ano || mes < 1 || mes > 12 || ano < 2020) {
+                    contentDiv.innerHTML = `<div class="alert alert-warning">Por favor, insira um Mês e um Ano válidos.</div>`;
+                    if (myChart) myChart.destroy();
+                    atualizarMinMax({min_frequencia: null, max_frequencia: null});
+                    return;
+                }
+
+                contentDiv.innerHTML = '<p class="text-center text-info">Carregando dados... <span class="spinner-border spinner-border-sm"></span></p>';
+
+                const url = `{{ url_for('api_estatisticas_mensais') }}?modulo=${modulo}&mes=${mes}&ano=${ano}`;
+                
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw new Error(err.mensagem || 'Erro desconhecido no servidor.'); });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.sucesso) {
+                            renderizarDados(data.dados, modulo);
+                            atualizarMinMax(data.dados);
+                        } else {
+                            contentDiv.innerHTML = `<div class="alert alert-danger">Erro de acesso: ${data.mensagem || 'Erro ao carregar dados.'}</div>`;
+                            if (myChart) myChart.destroy();
+                            atualizarMinMax({min_frequencia: null, max_frequencia: null});
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro de rede/API:', error);
+                        contentDiv.innerHTML = `<div class="alert alert-danger">Erro de comunicação: ${error.message}</div>`;
+                        if (myChart) myChart.destroy();
+                        atualizarMinMax({min_frequencia: null, max_frequencia: null});
+                    });
+            }
+
+            // Função para renderizar o resultado e o gráfico
+            function renderizarDados(dados, modulo) {
+                
+                if (myChart) {
+                    myChart.destroy();
+                }
+
+                let htmlContent = `<h4>Resumo - ${dados.entidade} - Mês ${dados.mes}/${dados.ano}</h4>`;
+                
+                if (!dados.detalhes || (Array.isArray(dados.detalhes) && dados.detalhes.length === 0)) {
+                    htmlContent += '<div class="alert alert-info mt-3">Nenhum registro encontrado para o período e módulo selecionados.</div>';
+                    contentDiv.innerHTML = htmlContent;
+                    return;
+                }
+
+
+                if (modulo === 'estudantes') {
+                    // Estudantes: Tabela de Presenças por Turma/Disciplina
+                    htmlContent += `<table class="table table-sm table-hover table-striped mt-3">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Turma (Curso/Ano)</th>
+                                                <th>Disciplina</th>
+                                                <th class="text-end">Total de Presenças (Mês)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>`;
+                    dados.detalhes.forEach(item => {
+                        htmlContent += `<tr>
+                                            <td>${item.turma}</td>
+                                            <td>${item.disciplina}</td>
+                                            <td class="text-end fw-bold">${item.valor.toLocaleString('pt-AO')}</td>
+                                        </tr>`;
+                    });
+                    htmlContent += `</tbody></table>`;
+                    
+                    // Prepara dados para o Gráfico de Barras (Estudantes)
+                    const chartLabels = dados.detalhes.map(i => `${i.turma.split(' - ')[0]}/${i.disciplina}`);
+                    const chartData = dados.detalhes.map(i => i.valor);
+                    
+                    myChart = new Chart(graficoCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Total de Presenças por Disciplina',
+                                data: chartData,
+                                backgroundColor: 'rgba(0, 86, 179, 0.7)', 
+                                borderColor: 'rgba(0, 86, 179, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: true } },
+                            scales: { 
+                                y: { beginAtZero: true, title: { display: true, text: 'Contagem de Presenças' } },
+                                x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } }
+                            }
+                        }
+                    });
+
+
+                } else if (modulo === 'funcionarios') {
+                    // Funcionários: Resumo e Gráfico de Linha (Entradas vs Saídas Diárias)
+                    const totalEntradas = dados.detalhes.data_entradas.reduce((a, b) => a + b, 0);
+                    const totalSaidas = dados.detalhes.data_saidas.reduce((a, b) => a + b, 0);
+
+                    htmlContent += `<p class="lead mt-3">Total de Registros no Mês:</p>`;
+                    htmlContent += `<ul>
+                                        <li>Total de **Entradas**: <strong class="text-success">${totalEntradas.toLocaleString('pt-AO')}</strong></li>
+                                        <li>Total de **Saídas**: <strong class="text-danger">${totalSaidas.toLocaleString('pt-AO')}</strong></li>
+                                    </ul>`;
+                    
+                    // Prepara dados para o Gráfico de Linha (Funcionários: Entradas vs Saídas Diárias)
+                    myChart = new Chart(graficoCanvas, {
+                        type: 'line',
+                        data: {
+                            labels: dados.detalhes.labels_dias, 
+                            datasets: [
+                                {
+                                    label: 'Entradas Diárias',
+                                    data: dados.detalhes.data_entradas,
+                                    borderColor: 'rgb(40, 167, 69)', 
+                                    tension: 0.2,
+                                    fill: false
+                                },
+                                {
+                                    label: 'Saídas Diárias',
+                                    data: dados.detalhes.data_saidas,
+                                    borderColor: 'rgb(220, 53, 69)', 
+                                    tension: 0.2,
+                                    fill: false
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { 
+                                legend: { display: true },
+                                title: { display: true, text: 'Entradas e Saídas Diárias no Mês' }
+                            },
+                            scales: { 
+                                y: { beginAtZero: true, title: { display: true, text: 'Contagem de Registros' } }
+                            }
+                        }
+                    });
+
+                }
+                
+                contentDiv.innerHTML = htmlContent;
+            }
+
+            // Event Listeners
+            aplicarBtn.addEventListener('click', carregarEstatisticas);
+
+            // Carregar estatísticas iniciais ao carregar a página
+            setTimeout(carregarEstatisticas, 100); 
+        });
+    </script>
+</body>
+</html>

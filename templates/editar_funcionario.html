@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Funcionário</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        video, canvas { max-width: 100%; border: 1px solid #ccc; border-radius: 5px; }
+        /* Estilo para a pré-visualização da imagem (Upload e Captura) */
+        #previewFotoManualFunc, #previewCapturaFunc {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none; /* Inicia oculto */
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4">
+        <i class="bi bi-pencil-square"></i> Gerenciar Funcionário: {{ funcionario.nome }}
+    </h2>
+    
+    {# Bloco para exibir mensagens flash do Flask #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {# O formulário aponta para a rota de edição, passando o ID #}
+    <form method="POST" action="{{ url_for('editar_funcionario', id=funcionario.id) }}" enctype="multipart/form-data" id="formEdicaoFuncionario">
+        
+        <ul class="nav nav-tabs" id="formTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dadosPessoais" type="button" role="tab">Dados de Cargo</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tabFotoFuncionario" data-bs-toggle="tab" data-bs-target="#fotoFuncionario" type="button" role="tab">Foto do Rosto</button>
+            </li>
+        </ul>
+
+        <div class="tab-content border border-top-0 p-3">
+            
+            <div class="tab-pane fade show active" id="dadosPessoais" role="tabpanel">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nome" class="form-label">Nome Completo:</label>
+                        <input type="text" class="form-control" name="nome" value="{{ funcionario.nome }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="numero_bi" class="form-label">Número do BI:</label>
+                        <input type="text" class="form-control" name="numero_bi" value="{{ funcionario.numero_bi }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="funcao" class="form-label">Função/Cargo:</label>
+                        <input type="text" class="form-control" name="funcao" value="{{ funcionario.funcao }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="departamento" class="form-label">Departamento:</label>
+                        <input type="text" class="form-control" name="departamento" value="{{ funcionario.departamento }}" required>
+                    </div>
+                </div>
+            </div>
+            
+           <div class="tab-pane fade" id="fotoFuncionario" role="tabpanel">
+                <h5>Foto Atual</h5>
+                {% if existe_foto %}
+                    {# CORREÇÃO APLICADA: Usa o caminho absoluto direto para corresponder ao padrão do Estudante #}
+                    <img id="fotoAtualFunc" 
+                         src="/known_faces/{{ funcionario.numero_bi }}.jpg?t={{ now if now is defined else '' }}" 
+                         alt="Foto do Funcionário" 
+                         class="img-thumbnail mb-3" 
+                         style="max-width: 200px;">
+                {% else %}
+                    <p class="text-warning" id="statusFotoAtualFunc">Nenhuma imagem encontrada para este funcionário.</p>
+                {% endif %}
+
+                <hr>
+                <h5 class="mt-4">Opções de Substituição</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Método de Substituição:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="metodo_substituicao" value="upload" id="radioUploadFunc" checked onclick="alternarMetodoSubstituicaoFunc()">
+                        <label class="form-check-label" for="radioUploadFunc">Upload Manual</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="metodo_substituicao" value="camera" id="radioCameraFunc" onclick="alternarMetodoSubstituicaoFunc()">
+                        <label class="form-check-label" for="radioCameraFunc">Capturar com Câmera</label>
+                    </div>
+                </div>
+                
+                <div class="mb-3" id="blocoUploadFunc">
+                    <label for="nova_foto_func_input" class="form-label">Arquivo de foto:</label>
+                    <input type="file" class="form-control" name="nova_foto_func" id="nova_foto_func_input" accept="image/*">
+                    <img id="previewFotoManualFunc" src="#" alt="Pré-visualização da nova foto">
+                </div>
+                
+                <div class="mb-3 d-none" id="blocoCameraFunc">
+                    <div class="mb-3">
+                        <label for="seletorCamerasFunc" class="form-label">Câmera:</label>
+                        <select id="seletorCamerasFunc" class="form-select"></select>
+                    </div>
+                    
+                    <label class="form-label">Pré-visualização:</label><br>
+                    <video id="webcamFunc" autoplay></video>
+                    <img id="previewCapturaFunc" src="#" alt="Foto Capturada">
+                    
+                    <canvas id="capturaFunc" style="display:none;"></canvas>
+                    
+                    <input type="hidden" name="nova_foto_base64_func" id="nova_foto_base64_func">
+                    
+                    <button type="button" class="btn btn-outline-primary mt-2" onclick="capturarFotoFunc()">📷 Capturar Foto</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Salvar Alterações
+            </button>
+        </div>
+    </form>
+
+    <hr>
+
+    {# Formulário de Eliminação (POST para garantir segurança) #}
+    <form method="POST" action="{{ url_for('excluir_funcionario', id=funcionario.id) }}" onsubmit="return confirm('Tem certeza que deseja ELIMINAR este funcionário e seus registros? Esta ação é irreversível.')">
+        <button type="submit" class="btn btn-danger">🗑️ Eliminar Funcionário</button>
+    </form>
+
+    <div class="mt-4">
+        <a href="{{ url_for('gerenciar_funcionarios') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Voltar à Gestão de Funcionários
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // =======================================================
+    // VARIÁVEIS GLOBAIS
+    // =======================================================
+    let currentStreamFunc = null;
+    const videoFunc = document.getElementById('webcamFunc');
+    const seletorFunc = document.getElementById('seletorCamerasFunc');
+    const canvasFunc = document.getElementById('capturaFunc');
+    const inputBase64Func = document.getElementById('nova_foto_base64_func'); // Base64 para envio
+    const novaFotoInputFunc = document.getElementById('nova_foto_func_input'); // Input de arquivo
+    const previewFotoManualFunc = document.getElementById('previewFotoManualFunc');
+    const previewCapturaFunc = document.getElementById('previewCapturaFunc');
+    
+    let fotoSubstituida = false;
+
+
+    // =======================================================
+    // FUNÇÕES DE CÂMERA E PREVIEW 
+    // =======================================================
+    function mostrarPreviewUploadFunc() {
+        const file = novaFotoInputFunc.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewFotoManualFunc.src = e.target.result;
+                previewFotoManualFunc.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewFotoManualFunc.src = '#';
+            previewFotoManualFunc.style.display = 'none';
+        }
+    }
+
+    novaFotoInputFunc.addEventListener('change', () => {
+        mostrarPreviewUploadFunc();
+        inputBase64Func.value = ''; 
+        fotoSubstituida = true;
+    });
+
+    function loadCamerasFunc(deviceId = null) {
+        if (currentStreamFunc) {
+            currentStreamFunc.getTracks().forEach(track => track.stop());
+        }
+        
+        videoFunc.style.display = 'block';
+        previewCapturaFunc.style.display = 'none';
+
+        if (!deviceId) return;
+
+        navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } } })
+            .then(stream => {
+                currentStreamFunc = stream;
+                videoFunc.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Erro ao acessar webcam", err);
+                alert("Não foi possível iniciar a câmera selecionada. Verifique as permissões.");
+            });
+    }
+
+    function enumerateCamerasFunc() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                stream.getTracks().forEach(track => track.stop());
+                
+                navigator.mediaDevices.enumerateDevices()
+                    .then(devices => {
+                        seletorFunc.innerHTML = '';
+                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                        
+                        if (videoDevices.length === 0) {
+                            seletorFunc.innerHTML = '<option value="">Nenhuma Câmera Encontrada</option>';
+                            return;
+                        }
+
+                        seletorFunc.innerHTML = '<option value="">-- Selecionar Câmera --</option>';
+                        videoDevices.forEach((device, index) => {
+                            const option = document.createElement('option');
+                            option.value = device.deviceId;
+                            option.text = device.label || `Câmera ${index + 1}`;
+                            seletorFunc.appendChild(option);
+                        });
+                        
+                        const metodo = document.querySelector('input[name="metodo_substituicao"]:checked').value;
+                        if (videoDevices.length > 0 && metodo === 'camera') {
+                            seletorFunc.value = videoDevices[0].deviceId;
+                            loadCamerasFunc(videoDevices[0].deviceId);
+                        }
+                    })
+                    .catch(err => console.error("Erro ao enumerar câmeras: ", err));
+            })
+            .catch(err => {
+                console.warn("Permissão de câmera negada ou erro de hardware.");
+                seletorFunc.innerHTML = '<option value="">Permissão Necessária / Câmera Indisponível</option>';
+            });
+    }
+
+    seletorFunc.onchange = function () {
+        loadCamerasFunc(this.value);
+    };
+
+    function alternarMetodoSubstituicaoFunc() {
+        const metodo = document.querySelector('input[name="metodo_substituicao"]:checked').value;
+        const cameraBlock = document.getElementById('blocoCameraFunc');
+        const uploadBlock = document.getElementById('blocoUploadFunc');
+
+        uploadBlock.classList.toggle('d-none', metodo !== 'upload');
+        cameraBlock.classList.toggle('d-none', metodo !== 'camera');
+        
+        inputBase64Func.value = '';
+        previewCapturaFunc.style.display = 'none';
+
+        if (metodo === 'camera') {
+            if (seletorFunc.options.length <= 1) {
+                enumerateCamerasFunc();
+            } else if (seletorFunc.value) {
+                loadCamerasFunc(seletorFunc.value);
+            }
+            previewFotoManualFunc.style.display = 'none';
+        } else { 
+            if (currentStreamFunc) {
+                currentStreamFunc.getTracks().forEach(track => track.stop());
+                currentStreamFunc = null;
+                videoFunc.srcObject = null;
+            }
+            mostrarPreviewUploadFunc();
+        }
+    }
+
+    function capturarFotoFunc() {
+        if (!currentStreamFunc) {
+            alert("Erro: Nenhuma câmera ativa. Selecione uma câmera e aguarde a pré-visualização.");
+            return;
+        }
+        
+        canvasFunc.width = videoFunc.videoWidth;
+        canvasFunc.height = videoFunc.videoHeight;
+        canvasFunc.getContext('2d').drawImage(videoFunc, 0, 0);
+        const imagem = canvasFunc.toDataURL('image/jpeg');
+        
+        inputBase64Func.value = imagem;
+        fotoSubstituida = true;
+        
+        currentStreamFunc.getTracks().forEach(track => track.stop());
+        currentStreamFunc = null;
+        videoFunc.srcObject = null;
+        
+        videoFunc.style.display = 'none';
+        previewCapturaFunc.src = imagem;
+        previewCapturaFunc.style.display = 'block';
+        
+        alert("✅ Foto capturada com sucesso! A nova foto será usada ao salvar as alterações.");
+    }
+    
+    // =======================================================
+    // INICIALIZAÇÃO E LÓGICA DE SUBMISSÃO (AJAX)
+    // =======================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        enumerateCamerasFunc();
+
+        document.getElementById('fotoFuncionario').addEventListener('hide.bs.tab', function (e) {
+            if (currentStreamFunc) {
+                currentStreamFunc.getTracks().forEach(track => track.stop());
+                currentStreamFunc = null;
+                videoFunc.srcObject = null;
+            }
+        });
+
+        document.getElementById('fotoFuncionario').addEventListener('shown.bs.tab', function (e) {
+            const metodo = document.querySelector('input[name="metodo_substituicao"]:checked').value;
+            if (metodo === 'camera') {
+                if (seletorFunc.value && seletorFunc.value !== '') {
+                    loadCamerasFunc(seletorFunc.value);
+                } else {
+                    enumerateCamerasFunc();
+                }
+            }
+        });
+
+        // ------------------------------------------------------------------
+        // LÓGICA DE SUBMISSÃO AJAX
+        // ------------------------------------------------------------------
+        const form = document.getElementById('formEdicaoFuncionario');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+
+            let valido = true;
+            
+            const novoBI = form.querySelector('[name="numero_bi"]').value.trim();
+            const nomeFuncionario = form.querySelector('[name="nome"]').value.trim();
+            if (!novoBI || !nomeFuncionario) {
+                alert("Nome e Número do BI são obrigatórios.");
+                valido = false;
+            }
+            
+            if (!valido) return;
+
+            const formData = new FormData(form);
+            const originalButtonText = submitButton.innerHTML;
+            
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.sucesso) {
+                    
+                    let recargaResult = { sucesso: true, mensagem: "Nenhuma atualização de rosto necessária." };
+
+                    if (result.foto_atualizada || fotoSubstituida) { 
+                        console.log("Funcionário atualizado. Recarregando rosto específico...");
+                        
+                        const recargaResponse = await fetch('{{ url_for("recarregar_rostos") }}', { 
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 'numero_bi': novoBI }) 
+                        });
+                        
+                        recargaResult = await recargaResponse.json();
+                    }
+                    
+                    let mensagemFinal = result.mensagem;
+                    if (recargaResult.sucesso) {
+                        mensagemFinal += ` (Rosto: ${recargaResult.mensagem})`;
+                    } else {
+                        mensagemFinal += ` (⚠️ Erro ao recarregar cache: ${recargaResult.mensagem})`;
+                    }
+                    
+                    alert(`✅ Sucesso! ${mensagemFinal}`);
+                    
+                    window.location.reload(); 
+                } else {
+                    alert(`❌ Falha na Atualização: ${result.mensagem || 'Erro desconhecido'}`);
+                }
+
+            } catch (error) {
+                console.error('Erro de rede/servidor:', error);
+                alert(`❌ Erro Inesperado: Não foi possível comunicar com o servidor.`);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+            }
+        });
+    });
+</script>
+</body>
+</html>

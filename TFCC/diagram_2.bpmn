@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1uolkig" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.29.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:collaboration id="Collaboration_167xpbi">
+    <bpmn:participant id="Participant_1q7qgn3" name="Processo de controlo de presença dos professores" processRef="Process_18fwuol" />
+    <bpmn:textAnnotation id="TextAnnotation_0irs8f8">
+      <bpmn:text>Chegada do Professor</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1lxqoqi">
+      <bpmn:text>relatório arquivado</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_001o6mj" associationDirection="None" sourceRef="StartEvent_1" targetRef="TextAnnotation_0irs8f8" />
+    <bpmn:association id="Association_0aumuw2" associationDirection="None" sourceRef="Event_16r34ye" targetRef="TextAnnotation_1lxqoqi" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_18fwuol" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1voe49e">
+      <bpmn:lane id="Lane_0odhx4b" name="Coordenação">
+        <bpmn:flowNodeRef>Activity_02e3x29</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_16r34ye</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0qnlr44</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_0u0vqeb" name="Professor">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0op9hh7</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0hh0sgu</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0op9hh7" name="Assina o Livro de Ponto">
+      <bpmn:incoming>Flow_0hh0sgu</bpmn:incoming>
+      <bpmn:outgoing>Flow_1e93dqy</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_02e3x29" name="Verifica horas lecionadas">
+      <bpmn:incoming>Flow_1e93dqy</bpmn:incoming>
+      <bpmn:outgoing>Flow_1cq97kq</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_16r34ye">
+      <bpmn:incoming>Flow_0jjglnf</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Activity_0qnlr44" name="Elabora relatório de assiduidade">
+      <bpmn:incoming>Flow_1cq97kq</bpmn:incoming>
+      <bpmn:outgoing>Flow_0jjglnf</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0hh0sgu" sourceRef="StartEvent_1" targetRef="Activity_0op9hh7" />
+    <bpmn:sequenceFlow id="Flow_1e93dqy" sourceRef="Activity_0op9hh7" targetRef="Activity_02e3x29" />
+    <bpmn:sequenceFlow id="Flow_1cq97kq" sourceRef="Activity_02e3x29" targetRef="Activity_0qnlr44" />
+    <bpmn:sequenceFlow id="Flow_0jjglnf" sourceRef="Activity_0qnlr44" targetRef="Event_16r34ye" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_167xpbi">
+      <bpmndi:BPMNShape id="Participant_1q7qgn3_di" bpmnElement="Participant_1q7qgn3" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="740" height="380" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0odhx4b_di" bpmnElement="Lane_0odhx4b" isHorizontal="true">
+        <dc:Bounds x="190" y="280" width="710" height="180" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0u0vqeb_di" bpmnElement="Lane_0u0vqeb" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="710" height="200" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="242" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0op9hh7_di" bpmnElement="Activity_0op9hh7">
+        <dc:Bounds x="370" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_02e3x29_di" bpmnElement="Activity_02e3x29">
+        <dc:Bounds x="360" y="330" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_16r34ye_di" bpmnElement="Event_16r34ye">
+        <dc:Bounds x="782" y="352" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0qnlr44_di" bpmnElement="Activity_0qnlr44">
+        <dc:Bounds x="560" y="330" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0hh0sgu_di" bpmnElement="Flow_0hh0sgu">
+        <di:waypoint x="278" y="180" />
+        <di:waypoint x="370" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1e93dqy_di" bpmnElement="Flow_1e93dqy">
+        <di:waypoint x="420" y="220" />
+        <di:waypoint x="420" y="275" />
+        <di:waypoint x="410" y="275" />
+        <di:waypoint x="410" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1cq97kq_di" bpmnElement="Flow_1cq97kq">
+        <di:waypoint x="460" y="370" />
+        <di:waypoint x="560" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0jjglnf_di" bpmnElement="Flow_0jjglnf">
+        <di:waypoint x="660" y="370" />
+        <di:waypoint x="782" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_001o6mj_di" bpmnElement="Association_001o6mj">
+        <di:waypoint x="257" y="198" />
+        <di:waypoint x="253" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0aumuw2_di" bpmnElement="Association_0aumuw2">
+        <di:waypoint x="810" y="385" />
+        <di:waypoint x="820" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0irs8f8_di" bpmnElement="TextAnnotation_0irs8f8">
+        <dc:Bounds x="200" y="220" width="100" height="41" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1lxqoqi_di" bpmnElement="TextAnnotation_1lxqoqi">
+        <dc:Bounds x="780" y="400" width="100" height="41" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

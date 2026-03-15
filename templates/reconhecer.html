@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registo de Presença/Ponto</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    /* ---------------------------------------------------------------------- */
+    /* ESTILOS BASE E VARIÁVEIS - Otimizados */
+    /* ---------------------------------------------------------------------- */
+    :root {
+        --primary-color: #0d6efd; 
+        --secondary-color: #6c757d; 
+        --light-bg: #f8f9fa; 
+        --main-bg-card: #ffffff; 
+        --shadow-elevation: 0 4px 12px rgba(0, 0, 0, 0.08); 
+        --card-border-radius: 12px;
+    }
+
+    body {
+        background-color: var(--light-bg);
+        color: #212529; 
+        padding-top: 2rem;
+    }
+
+    .container {
+        /* max-width padrão do Bootstrap, permitindo mais largura */
+    }
+    
+    /* ---------------------------------------------------------------------- */
+    /* CABEÇALHO E SEPARADORES */
+    /* ---------------------------------------------------------------------- */
+    h1 {
+        font-weight: 300;
+        margin-bottom: 2rem;
+        color: var(--primary-color);
+        padding-bottom: 10px;
+        font-size: 2.25rem;
+    }
+    
+    .divider-light {
+        border-top: 1px solid #dee2e6;
+        margin: 2rem 0;
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* CONTROLES (Filtros) */
+    /* ---------------------------------------------------------------------- */
+    #controlsContainer {
+        background-color: var(--main-bg-card);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-elevation);
+        padding: 25px;
+        margin-bottom: 2.5rem !important;
+        border: 1px solid #e9ecef;
+        /* Revertendo a centralização forçada, agora o Bootstrap g-3 cuida disso */
+        max-width: none; 
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    #controlsContainer label {
+        font-weight: 600; 
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* CÂMERA E CARD DE INFORMAÇÃO */
+    /* ---------------------------------------------------------------------- */
+    /* Revertendo o bloco principal centralizado */
+    .main-content-block {
+        max-width: none;
+        margin: 0;
+    }
+    
+    #webcamContainer {
+        display: flex;
+        justify-content: center;
+        gap: 25px; 
+        margin-bottom: 2.5rem; /* Voltando ao espaçamento original */
+        flex-wrap: wrap; 
+        align-items: flex-start; 
+    }
+
+    #videoCanvasWrapper {
+        position: relative;
+        background-color: #343a40; 
+        border-radius: var(--card-border-radius); 
+        box-shadow: var(--shadow-elevation); 
+        overflow: hidden; 
+        max-width: 640px; 
+        width: 100%; 
+    }
+    
+    #webcam, #overlayCanvas, #instantaneoCanvas, #previewImage {
+        width: 100%;
+        height: auto;
+        max-width: 640px; 
+        max-height: 480px;
+        display: block; 
+    }
+
+    #overlayCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+    }
+
+    /* Card de Informação (Resultado) */
+    #infoCard {
+        max-width: 350px; 
+        width: 100%; 
+        min-width: 280px;
+        background-color: var(--main-bg-card);
+        border-radius: var(--card-border-radius); 
+        box-shadow: var(--shadow-elevation);
+        padding: 20px; 
+        text-align: center; 
+        display: none;
+        border: 1px solid #e9ecef; 
+    }
+    
+    .status-header {
+        padding: 10px 0;
+        border-radius: 8px;
+        margin-bottom: 15px !important;
+    }
+    .status-header h5 {
+        color: white; 
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    .detail-item {
+        text-align: left;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* UPLOAD */
+    /* ---------------------------------------------------------------------- */
+    #uploadContainer {
+        padding: 25px; 
+        border-radius: var(--card-border-radius);
+        max-width: 800px;
+        margin: 0 auto; /* Mantido aqui para centralizar o bloco de upload especificamente */
+        box-shadow: var(--shadow-elevation);
+        background-color: var(--main-bg-card);
+        border: 1px solid #dee2e6;
+    }
+    
+    #uploadBlock #previewImage {
+        max-height: 500px; 
+        object-fit: contain;
+    }
+    
+    #listaNomesContainer {
+        border: 1px solid #ced4da;
+        border-radius: 8px; 
+        padding: 15px;
+        margin-top: 20px !important;
+        background-color: #f8f9fa; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    #listaNomes .list-group-item {
+        border-radius: 6px;
+        margin-bottom: 8px;
+        padding: 10px 15px;
+        transition: all 0.2s;
+    }
+    
+    /* ---------------------------------------------------------------------- */
+    /* BOTÕES E UTILS */
+    /* ---------------------------------------------------------------------- */
+    #actionButtonsGroup {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap; 
+        gap: 15px; 
+        margin-top: 2rem;
+        margin-bottom: 4rem;
+    }
+    
+    .btn-lg {
+        font-size: 1.1rem; 
+        padding: 12px 30px;
+    }
+
+    /* Seletor de Câmeras mais discreto (posição original) */
+    #seletorCamerasWrapper { /* Wrapper do seletor */
+        max-width: 450px;
+        margin: 0 auto 20px auto !important; /* Centraliza a div do seletor */
+        border-radius: 8px;
+    }
+    
+    /* Toast (notificações) */
+    #toastNotificacao {
+        z-index: 1080; 
+        min-width: 300px;
+    }
+</style>
+</head>
+<body class="bg-light">
+<div class="container mt-5 text-center">
+    <h1><i class="bi bi-calendar-check-fill me-2"></i> Registo de Presença / Ponto</h1>
+
+    {# BLOCO DE CONTROLES E SELEÇÕES #}
+    <div class="row justify-content-center g-3" id="controlsContainer">
+        
+        {# LINHA SUPERIOR: MODO DE REGISTO E FONTE DA IMAGEM #}
+        <div class="col-12 row justify-content-center g-3 mb-3">
+            
+            {# FILTRO PARA ADMIN: ESCOLHER MÓDULO #}
+            {% if tipo_usuario == 'Admin' %}
+            <div class="col-lg-4 col-md-6">
+                <label for="modulo_select" class="form-label"><i class="bi bi-person-lines-fill"></i> **Modo de Registo:**</label>
+                <select id="modulo_select" class="form-select" onchange="toggleModule()">
+                    <option value="estudantes" {% if modo_reconhecimento == 'estudantes' %}selected{% endif %}>Estudantes (Presença)</option>
+                    <option value="funcionarios" {% if modo_reconhecimento == 'funcionarios' %}selected{% endif %}>Funcionários (Ponto)</option>
+                </select>
+            </div>
+            {% endif %}
+
+            {# Opções de Origem da Imagem #}
+            <div class="col-lg-4 col-md-6">
+                <label for="source_mode" class="form-label"><i class="bi bi-image"></i> **Fonte da Imagem:**</label>
+                <select id="source_mode" class="form-select" onchange="toggleSourceMode()">
+                    <option value="live">Câmera ao Vivo</option>
+                    <option value="upload" 
+                        {% if tipo_usuario == 'Funcionario' or modo_reconhecimento == 'funcionarios' %}disabled{% endif %}>
+                        Upload de Foto (Grupo)
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-12"><hr class="divider-light my-0"></div>
+
+        {# CONTROLES ESPECÍFICOS: Professor/Oferta (Estudante) #}
+        <div class="col-12 row justify-content-center g-3 mt-0 {% if modo_reconhecimento == 'funcionarios' %}d-none{% endif %}" id="estudanteControls">
+            
+            {# Seleção de Professor/Nome Fixo #}
+            {% if tipo_usuario == 'Admin' %}
+            <div class="col-lg-4 col-md-6">
+                <label for="professor_select" class="form-label"><i class="bi bi-person-circle"></i> **Professor:**</label>
+                <select id="professor_select" class="form-select">
+                    <option value="">Selecione o Professor</option>
+                    {% for professor in professores_disponiveis %}
+                    <option value="{{ professor.id }}">{{ professor.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% else %}
+            <div class="col-lg-4 col-md-6">
+                <label for="professor_select_disabled" class="form-label"><i class="bi bi-person-circle"></i> **Professor Logado:**</label>
+                <input type="text" class="form-control" id="professor_select_disabled" value="{{ professor_logado_nome }}" disabled>
+                <input type="hidden" id="professor_select" value="{{ entidade_id }}">
+            </div>
+            {% endif %}
+
+            {# Seleção de Oferta/Turma #}
+            <div class="col-lg-4 col-md-6">
+                <label for="oferta_select" class="form-label"><i class="bi bi-journals"></i> **Turma (Oferta Atual):**</label>
+                <select id="oferta_select" class="form-select" required>
+                    <option value="">Selecione a Disciplina e Turma</option>
+                    {% for oferta in ofertas %}
+                    <option 
+                        value="{{ oferta.id }}" 
+                        data-disciplina-nome="{{ oferta.nome_disciplina }}"
+                        data-professor-nome="{{ oferta.nome_professor or 'Não Associado' }}"
+                    >
+                        {{ oferta.nome_disciplina }} ({{ oferta.curso }} - {{ oferta.ano_frequencia }} - {{ oferta.periodo }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        {# CONTROLES DO MÓDULO FUNCIONÁRIOS #}
+        <div class="col-12 row justify-content-center g-3 mt-0 {% if modo_reconhecimento != 'funcionarios' %}d-none{% endif %}" id="funcionarioControls">
+            <div class="col-lg-8 col-md-10">
+                <div class="alert alert-danger p-3 mb-0 text-center" role="alert">
+                    <h5 class="alert-heading mb-1"><i class="bi bi-clock-history"></i> MODO DE REGISTO DE PONTO</h5>
+                    <p class="mb-0 small">Apenas o rosto do funcionário será reconhecido para registo de ENTRADA/SAÍDA.</p>
+                </div>
+            </div>
+        </div>
+        
+        <input type="hidden" id="initial_mode" value="{{ modo_reconhecimento }}">
+
+    </div>
+
+    {# SELETOR DE CÂMERAS - VISIBILIDADE CONTROLADA PELO JS (agora fora do controlsContainer) #}
+    <div id="seletorCamerasWrapper" class="d-none">
+        <label for="seletorCameras" class="form-label visually-hidden">Câmera Selecionada:</label>
+        <select id="seletorCameras" class="form-select mb-4"></select>
+    </div>
+    
+    <div class="divider-light"></div>
+
+    {# BLOCO PRINCIPAL (CÂMERA/UPLOAD E RESULTADO) #}
+    <div class="main-content-block">
+        
+        {# BLOCO DA CÂMERA (Live) #}
+        <div id="liveCameraBlock">
+            <div id="webcamContainer">
+                <div id="videoCanvasWrapper">
+                    <video id="webcam" autoplay></video>
+                    <canvas id="overlayCanvas"></canvas>
+                    <canvas id="instantaneoCanvas" style="display:none;"></canvas>
+                </div>
+                {# Card de Informação - Lado a lado com o vídeo #}
+                <div id="infoCard" class="shadow-lg"> 
+                    <p class="text-muted small my-auto">Aguardando reconhecimento facial.</p>
+                </div>
+            </div>
+        </div>
+        
+        {# BLOCO DE UPLOAD (Grupo) #}
+        <div id="uploadBlock" class="d-none">
+            <div id="uploadContainer">
+                <div class="col-12 text-center">
+                    <label for="fileUpload" class="form-label fw-bold"><i class="bi bi-file-earmark-image-fill"></i> Selecione a Foto para Reconhecimento de Grupo</label>
+                    <input type="file" id="fileUpload" class="form-control mb-3" accept="image/*" 
+                        {% if tipo_usuario == 'Funcionario' or modo_reconhecimento == 'funcionarios' %}disabled{% endif %}>
+                    
+                    {# Preview de Imagem (Ajustado no CSS para melhor visualização) #}
+                    <img id="previewImage" style="max-width: 100%; display: none;" class="img-thumbnail" alt="Preview da Imagem" loading="lazy">
+                    <canvas id="uploadCanvas" style="display:none;"></canvas>
+                    
+                    <div class="mt-3 text-muted small"><i class="bi bi-info-circle"></i> O modo Upload processa todos os rostos encontrados na imagem para registro de presença.</div>
+                    
+                    {# CONTÊINER PARA A LISTA DE NOMES #}
+                    <div id="listaNomesContainer" class="mt-4 text-start col-12 d-none">
+                        <h5 class="text-secondary mb-3"><i class="bi bi-list-check"></i> Resultado do Processamento:</h5>
+                        <ul id="listaNomes" class="list-group">
+                            {# Nomes serão injetados aqui #}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    {# GRUPO DE BOTÕES DE AÇÃO #}
+    <div id="actionButtonsGroup">
+        <button id="botaoReconhecer" class="btn btn-success btn-lg btn-reconhecer" onclick="capturarImagem(false)">
+            <i class="bi bi-camera-fill"></i> Capturar Instantâneo
+        </button>
+
+        <button id="botaoRecarregar" class="btn btn-warning btn-lg" onclick="recarregarRostos()">
+            <i class="bi bi-arrow-repeat"></i> Recarregar Rostos
+        </button>
+        
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg">
+            <i class="bi bi-arrow-left-circle-fill"></i> Voltar ao Painel
+        </a>
+        
+        {# SPINNER MANUAL / AUTOMÁTICO #}
+        <div class="mt-4 d-flex justify-content-center align-items-center w-100">
+            <div class="spinner-border text-primary d-none me-3" id="carregando" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <div class="spinner-grow text-info d-none" id="carregandoAutomatico" role="status" style="width: 1.5rem; height: 1.5rem;">
+                <span class="visually-hidden">Reconhecendo automaticamente...</span>
+            </div>
+        </div>
+    </div>
+
+    {# COMPONENTES DE FEEDBACK OCULTOS #}
+    <audio id="somConfirmacao" src="{{ url_for('static', filename='confirm.mp3') }}"></audio>
+    <audio id="somErro" src="{{ url_for('static', filename='erro.mp3') }}"></audio>
+
+    {# TOASTS FIXOS #}
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+        <div id="toastNotificacao" class="toast align-items-center text-bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMensagem">Mensagem</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// O CÓDIGO JAVASCRIPT
+const video = document.getElementById('webcam');
+const seletor = document.getElementById('seletorCameras');
+const seletorCamerasWrapper = document.getElementById('seletorCamerasWrapper'); // ID do wrapper do seletor
+const canvas = document.getElementById('overlayCanvas');
+const ctx = canvas.getContext('2d');
+const infoCard = document.getElementById('infoCard');
+const ofertaSelect = document.getElementById('oferta_select');
+const botaoReconhecer = document.getElementById('botaoReconhecer');
+const instantaneoCanvas = document.getElementById('instantaneoCanvas');
+const carregandoManual = document.getElementById('carregando');
+const carregandoAutomatico = document.getElementById('carregandoAutomatico');
+
+const initialMode = document.getElementById('initial_mode') ? document.getElementById('initial_mode').value : 'estudantes'; 
+const moduloSelect = document.getElementById('modulo_select');
+const professorSelectEl = document.getElementById('professor_select'); 
+const estudanteControls = document.getElementById('estudanteControls');
+const funcionarioControls = document.getElementById('funcionarioControls');
+const sourceModeSelect = document.getElementById('source_mode');
+const liveCameraBlock = document.getElementById('liveCameraBlock');
+const uploadBlock = document.getElementById('uploadBlock');
+const fileUploadInput = document.getElementById('fileUpload');
+const previewImage = document.getElementById('previewImage');
+const uploadCanvas = document.getElementById('uploadCanvas');
+
+const listaNomesContainer = document.getElementById('listaNomesContainer'); 
+const listaNomes = document.getElementById('listaNomes'); 
+
+let currentStream = null;
+let faceDetectionInterval = null; 
+let isProcessing = false; 
+let lastFaceDetected = false;
+const AUTORECOGNITION_COOLDOWN = 3000;
+const INFOCARD_DISPLAY_DELAY = 10000; 
+const FACE_CHECK_INTERVAL = 100; 
+let allOfertas = []; 
+
+// --- FUNÇÕES DE UTILIDADE (MODIFICADAS) ---
+
+function ajustarCanvas() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.style.width = video.clientWidth + "px";
+    canvas.style.height = video.clientHeight + "px";
+}
+
+/**
+ * Desenha o retângulo de detecção de rosto.
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} width 
+ * @param {number} height 
+ * @param {string} cor Cor da linha ('lime' para liveness OK, 'red' para falha)
+ */
+function desenharRetangulo(x, y, width, height, cor = 'lime') {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = cor; 
+    ctx.shadowColor = cor === 'lime' ? 'rgba(50, 205, 50, 0.5)' : 'rgba(255, 0, 0, 0.5)'; 
+    ctx.shadowBlur = 10;
+    ctx.strokeRect(x, y, width, height);
+    
+    ctx.shadowBlur = 0;
+}
+
+function limparCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    infoCard.style.display = 'none';
+}
+
+function exibirToast(mensagem, tipo = 'info') {
+    const toastMensagem = document.getElementById('toastMensagem');
+    const toast = document.getElementById('toastNotificacao');
+    
+    let bgColorClass = 'text-bg-info'; 
+    if (tipo === 'success') bgColorClass = 'text-bg-success';
+    else if (tipo === 'danger') bgColorClass = 'text-bg-danger';
+    else if (tipo === 'warning') bgColorClass = 'text-bg-warning';
+    
+    toast.className = `toast align-items-center ${bgColorClass} border-0`;
+    toastMensagem.textContent = mensagem;
+    
+    const bsToast = new bootstrap.Toast(toast, { delay: 3500 }); 
+    bsToast.show();
+}
+
+/**
+ * Centraliza a construção do HTML do Card de Informação (Live Mode)
+ * O código JS dessa função foi ajustado para usar as novas classes de estilo.
+ */
+function preencherInfoCard(resultado, modulo, professorNome) {
+    let statusIcon = '❓';
+    const statusMensagem = resultado.status_mensagem || resultado.mensagem || 'Status Desconhecido';
+    const currentModulo = modulo || initialMode; 
+    
+    if (currentModulo === 'funcionarios') {
+        const firstWord = statusMensagem ? statusMensagem.trim().split(' ')[0] : '❌';
+        
+        if (firstWord.includes('✅')) statusIcon = '✅';
+        else if (firstWord.includes('ℹ️')) statusIcon = 'ℹ️';
+        else if (firstWord.includes('⚠️')) statusIcon = '⚠️';
+        else if (firstWord.includes('❌')) statusIcon = '❌';
+    } else {
+        statusIcon = resultado.status_icon || '❓';
+    }
+
+    const isSuccess = statusIcon === '✅';
+    const isInfo = statusIcon === 'ℹ️';
+    const isWarning = statusIcon === '⚠️';
+    const isError = statusIcon === '❌';
+    const dados = resultado.dados;
+
+    let statusTipo = 'info';
+    let iconClass = 'bi-info-circle-fill';
+    let statusTitle = '';
+    let tipoPontoExibicao = 'N/D'; 
+    
+    // --- LÓGICA DE DEFINIÇÃO DE TÍTULO E TIPO ---
+    if (isSuccess) {
+        statusTipo = 'success';
+        iconClass = 'bi-check-circle-fill';
+        
+        if (currentModulo === 'funcionarios') {
+            if (statusMensagem.includes('ENTRADA_REGISTRADA')) {
+                statusTitle = 'ENTRADA REGISTRADA';
+                tipoPontoExibicao = 'ENTRADA'; 
+            } else if (statusMensagem.includes('SAIDA_REGISTRADA')) {
+                statusTitle = 'SAÍDA REGISTRADA';
+                tipoPontoExibicao = 'SAÍDA'; 
+            } else {
+                statusTitle = 'Ponto Registrado';
+            }
+        } else {
+            statusTitle = 'Presença Registrada'; 
+        }
+    } else if (isWarning) {
+        statusTipo = 'warning';
+        iconClass = 'bi-exclamation-triangle-fill';
+        
+        if (currentModulo === 'funcionarios' && statusMensagem.includes('LIMITE_ATINGIDO')) {
+            statusTitle = 'LIMITE DE REGISTRO Atingido';
+            tipoPontoExibicao = 'FECHADO'; 
+        } else if (currentModulo === 'funcionarios' && statusMensagem.includes('JÁ REGISTRADA')) {
+             statusTitle = 'Já Registrado Hoje';
+        } else {
+            statusTitle = 'Turma Incompatível/Aviso';
+        }
+    } else if (isError) {
+        statusTipo = 'danger';
+        iconClass = 'bi-x-octagon-fill';
+        statusTitle = 'Falha Crítica no Registo';
+    } else if (isInfo) {
+        statusTipo = 'info';
+        iconClass = 'bi-info-circle-fill';
+        
+        if (currentModulo === 'funcionarios' && statusMensagem.includes('REGISTO_RAPIDO')) {
+            statusTitle = 'Tentativa Rápida (Ignorado)';
+            if (statusMensagem.includes('Tentativa de ENTRADA')) tipoPontoExibicao = 'ENTRADA (Tentativa)';
+            else if (statusMensagem.includes('Tentativa de SAIDA')) tipoPontoExibicao = 'SAÍDA (Tentativa)';
+        } else {
+            statusTitle = 'Aguardando Reconhecimento';
+        }
+    } else {
+        statusTipo = 'secondary';
+        iconClass = 'bi-question-circle-fill';
+        statusTitle = 'Status Indefinido (Verifique Log)';
+    }
+    // --- FIM DA LÓGICA DE DEFINIÇÃO DE TÍTULO E TIPO ---
+
+    // --- INJEÇÃO DO HTML MODERNIZADO NO CARD ---
+    let cardContent = `
+        <div class="status-header ${statusTipo} text-center mb-3">
+            <h5 class="mb-1"><i class="bi ${iconClass}"></i> ${statusTitle}</h5>
+        </div>
+        <div class="text-center">
+            <img src="${dados.url_imagem || '{{ url_for('static', filename='default_profile.png') }}'}" 
+                 class="img-thumbnail rounded-circle mb-3 border-${statusTipo}" 
+                 alt="Foto" style="width: 120px; height: 120px; object-fit: cover; border-width: 3px !important;">
+            <h4 class="mb-2 text-${statusTipo}">${dados.nome || 'Nome N/D'}</h4>
+        </div>
+        <hr class="my-3">
+    `;
+    
+    // Adiciona detalhes específicos
+    if (currentModulo === 'funcionarios') {
+        const isRegistroValido = isSuccess || isInfo;
+        
+        cardContent += `
+            <p class="detail-item"><i class="bi bi-person-badge-fill me-2 text-primary"></i><strong>BI:</strong> ${dados.numero_bi || 'N/A'}</p>
+            <p class="detail-item"><i class="bi bi-briefcase-fill me-2 text-primary"></i><strong>Função:</strong> ${dados.funcao || 'N/A'}</p>
+            <p class="detail-item"><i class="bi bi-building-fill me-2 text-primary"></i><strong>Departamento:</strong> ${dados.departamento || 'N/A'}</p>
+            
+            <p class="detail-item fw-bold text-${isRegistroValido ? (isSuccess ? 'success' : 'info') : (isWarning ? 'warning' : 'danger')} mt-3">
+                <i class="bi bi-clock-fill me-2"></i>**Registo:** ${tipoPontoExibicao}
+            </p>
+        `;
+    } else { // Estudantes
+        const selectedOption = ofertaSelect.options[ofertaSelect.selectedIndex];
+        const disciplinaNome = selectedOption ? selectedOption.getAttribute('data-disciplina-nome') : 'N/A';
+        
+        cardContent += `
+            <p class="detail-item"><i class="bi bi-person-badge-fill me-2 text-primary"></i><strong>Nº de Estudante:</strong> ${dados.numero_estudante || 'N/A'}</p>
+            <p class="detail-item"><i class="bi bi-book-fill me-2 text-primary"></i><strong>Disciplina:</strong> ${disciplinaNome}</p>
+            <p class="detail-item"><i class="bi bi-person-video2 me-2 text-primary"></i><strong>Professor:</strong> ${professorNome || 'N/A'}</p>
+            <p class="detail-item"><i class="bi bi-calendar-check-fill me-2 text-primary"></i><strong>Curso/Ano:</strong> ${dados.curso || 'N/A'} - ${dados.ano_frequencia || 'N/A'}º</p>
+            <p class="detail-item"><i class="bi bi-sun-fill me-2 text-primary"></i><strong>Período:</strong> ${dados.periodo || 'N/A'}</p>
+        `;
+    }
+    
+    // Adiciona a mensagem detalhada
+    if (isWarning || isError || isInfo || (isSuccess && currentModulo === 'funcionarios')) {
+        let cleanedMessage = statusMensagem.replace(statusIcon, '').trim();
+        
+        // Limpeza de palavras-chave e formatação
+        cleanedMessage = cleanedMessage
+                            .replace('LIMITE_INGIDO:', '')
+                            .replace('REGISTO_RAPIDO:', '')
+                            .replace('ENTRADA_REGISTRADA:', '') 
+                            .replace('SAIDA_REGISTRADA:', '') 
+                            .replace(':', '') 
+                            .replace(/\*\*/g, '') 
+                            .trim();
+
+        const regexNomeRegistrado = new RegExp(`${dados.nome} registrado às`, 'i');
+        
+        if (isSuccess && currentModulo === 'funcionarios') {
+            cleanedMessage = cleanedMessage.replace(regexNomeRegistrado, 'Horário:');
+            const horario = cleanedMessage.substring(cleanedMessage.lastIndexOf(' ') + 1);
+            cleanedMessage = `Horário do Registo: **${horario}**`;
+        } else if (isWarning && currentModulo === 'funcionarios' && statusMensagem.includes('LIMITE_ATINGIDO')) {
+            cleanedMessage = cleanedMessage.trim(); 
+        }
+        else if (isInfo && currentModulo === 'funcionarios' && statusMensagem.includes('REGISTO_RAPIDO')) {
+             cleanedMessage = cleanedMessage.replace('Tentativa de', 'Tentativa de registro').trim();
+        }
+        
+        let finalMessageHtml = cleanedMessage.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        cardContent += `
+            <div class="alert alert-${isError ? 'danger' : (isWarning ? 'warning' : 'info')} p-2 mt-3" role="alert">
+                <i class="bi bi-chat-text-fill me-1"></i> <span class="small">${finalMessageHtml}</span>
+            </div>
+        `;
+    }
+
+    infoCard.innerHTML = cardContent;
+    infoCard.style.display = 'block';
+}
+
+
+function filtrarOfertasPorProfessor(professorId) {
+    const isProfessor = "{{ tipo_usuario }}" === 'Professor';
+    const profIdFinal = isProfessor ? "{{ entidade_id }}" : professorId;
+    
+    if (!isProfessor && !professorId) {
+        ofertaSelect.innerHTML = '<option value="">-- Selecione o Professor Primeiro --</option>';
+        stopFaceDetectionTimer(); 
+        return;
+    }
+    
+    const url = `/api/ofertas_por_professor/${profIdFinal}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Falha ao buscar ofertas.');
+            return response.json();
+        })
+        .then(ofertas => {
+            allOfertas = ofertas; 
+            
+            ofertaSelect.innerHTML = '<option value="">-- Selecione a Disciplina e Turma --</option>';
+
+            ofertas.forEach(oferta => {
+                const option = document.createElement('option');
+                option.value = oferta.id;
+                option.textContent = `${oferta.nome_disciplina} (${oferta.curso} - ${oferta.ano_frequencia} - ${oferta.periodo})`;
+                option.setAttribute('data-disciplina-nome', oferta.nome_disciplina);
+                option.setAttribute('data-professor-nome', oferta.nome_professor || 'N/A');
+                ofertaSelect.appendChild(option);
+            });
+            
+            checkAndStartDetection();
+
+        })
+        .catch(error => {
+            console.error('Erro ao carregar ofertas:', error);
+            exibirToast("❌ Erro ao carregar ofertas de disciplina.", 'danger');
+            ofertaSelect.innerHTML = '<option value="">-- Erro ao Carregar Ofertas --</option>';
+            stopFaceDetectionTimer();
+        });
+}
+
+
+function isReadyForDetection() {
+    const sourceMode = sourceModeSelect.value;
+    const modulo = moduloSelect ? moduloSelect.value : initialMode; 
+
+    if (sourceMode !== 'live' || isProcessing || !currentStream) {
+        return false;
+    }
+
+    if (modulo === 'estudantes') {
+        const professorId = professorSelectEl ? professorSelectEl.value : null;
+        const ofertaId = ofertaSelect.value;
+        
+        if (!ofertaId || !professorId) {
+            return false;
+        }
+    } else {
+        return true;
+    }
+    
+    return true;
+}
+
+function checkAndStartDetection() {
+    if (isReadyForDetection()) {
+        if (faceDetectionInterval === null) {
+            startFaceDetectionTimer();
+            console.log("✅ Detecção automática ATIVADA."); 
+        }
+    } else {
+        stopFaceDetectionTimer();
+        if (sourceModeSelect.value === 'live' && currentStream) { 
+           console.log("⏸️ Detecção automática pausada. Seleções pendentes."); 
+        }
+    }
+}
+
+
+// --- FUNÇÕES DE CÂMERA E DETECÇÃO ---
+
+function loadCameras(deviceId = null) {
+    stopFaceDetectionTimer();
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+    }
+    
+    if (!deviceId) return;
+
+    navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } } })
+        .then(stream => {
+            currentStream = stream;
+            video.srcObject = stream;
+            video.addEventListener('loadedmetadata', ajustarCanvas);
+            checkAndStartDetection();
+        })
+        .catch(err => {
+            console.error("Erro ao acessar webcam", err);
+            exibirToast("❌ Erro ao iniciar a câmera. Verifique as permissões.", 'danger');
+            currentStream = null;
+        });
+}
+
+function enumerateCameras() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            stream.getTracks().forEach(track => track.stop());
+            
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    seletor.innerHTML = '';
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    
+                    if (videoDevices.length === 0) {
+                         seletor.innerHTML = '<option value="">Nenhuma Câmera Encontrada</option>';
+                         return;
+                    }
+
+                    seletor.innerHTML = '<option value="">-- Selecionar Câmera --</option>';
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Câmera ${index + 1}`;
+                        seletor.appendChild(option);
+                    });
+                    
+                    if (videoDevices.length > 0) {
+                        seletor.value = videoDevices[0].deviceId;
+                        loadCameras(videoDevices[0].deviceId);
+                    }
+                })
+                .catch(err => console.error("Erro ao enumerar câmeras: ", err));
+        })
+        .catch(err => {
+            console.warn("Permissão de câmera negada ou erro de hardware.");
+            seletor.innerHTML = '<option value="">Permissão Necessária / Câmera Indisponível</option>';
+        });
+}
+
+seletor.onchange = function () {
+    loadCameras(this.value);
+};
+
+
+/**
+ * Lógica do Temporizador de DETECÇÃO DE ROSTO AUTOMÁTICO
+ * ***MODIFICADO PARA USAR /verificar_rosto_liveness***
+ */
+function startFaceDetectionTimer() {
+    stopFaceDetectionTimer();
+    
+    if (!isReadyForDetection()) {
+        console.warn("Validação falhou. Detecção automática não iniciada.");
+        return;
+    }
+    
+    faceDetectionInterval = setInterval(async () => {
+        if (isProcessing || !video.readyState || video.paused || video.ended) {
+            return;
+        }
+
+        instantaneoCanvas.width = video.videoWidth;
+        instantaneoCanvas.height = video.videoHeight;
+        if (instantaneoCanvas.width === 0 || instantaneoCanvas.height === 0) return; 
+        instantaneoCanvas.getContext('2d').drawImage(video, 0, 0);
+        const imagemBase64 = instantaneoCanvas.toDataURL('image/jpeg');
+
+        try {
+            // *** AQUI: CHAMA A NOVA ROTA DE LIVENESS ***
+            const response = await fetch('/verificar_rosto_liveness', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imagem: imagemBase64 })
+            });
+            const data = await response.json();
+
+            if (data.sucesso) {
+                const dim = data.dimensions;
+                
+                // Desenha o retângulo: verde se Liveness OK, vermelho se falha
+                desenharRetangulo(dim.left, dim.top, dim.right - dim.left, dim.bottom - dim.top, data.liveness_passou ? 'lime' : 'red');
+
+                // Se houver rosto E Liveness OK, inicia o reconhecimento completo
+                if (data.liveness_passou) {
+                    if (!lastFaceDetected) { 
+                        lastFaceDetected = true;
+                        stopFaceDetectionTimer(); 
+                        limparCanvas(); 
+                        console.log("✅ Liveness OK. Disparando reconhecimento automático...");
+                        capturarImagem(true); 
+                    }
+                } else {
+                     // Rosto detectado, mas liveness falhou
+                     lastFaceDetected = false;
+                     // O retângulo já é desenhado acima com cor de falha (vermelho)
+                     // Exibe a mensagem de falha/aviso no toast
+                     const toastTipo = data.mensagem.includes('Pode ser um spoofing') ? 'danger' : 'warning';
+                     exibirToast(data.mensagem, toastTipo);
+                }
+
+            } else {
+                lastFaceDetected = false;
+                limparCanvas();
+            }
+        } catch (err) {
+            console.error("Erro na verificação de liveness:", err);
+            lastFaceDetected = false;
+        }
+
+    }, FACE_CHECK_INTERVAL); 
+}
+
+function stopFaceDetectionTimer() {
+    if (faceDetectionInterval) {
+        clearInterval(faceDetectionInterval);
+        faceDetectionInterval = null;
+    }
+}
+
+
+// --- LÓGICA DE CONTROLE DE UI (Módulos e Captura) ---
+
+function toggleModule() {
+    if (!moduloSelect) return; 
+
+    const modulo = moduloSelect.value;
+    
+    if (modulo === 'funcionarios') {
+        estudanteControls.classList.add('d-none');
+        funcionarioControls.classList.remove('d-none');
+        ofertaSelect.removeAttribute('required'); 
+        document.querySelector('h1').innerHTML = '<i class="bi bi-clock-history me-2"></i> Registo de Ponto de Funcionários';
+        exibirToast("Modo Funcionários Ativo. Apenas registro de Ponto.", 'info');
+        sourceModeSelect.querySelector('option[value="upload"]').disabled = true;
+        sourceModeSelect.value = 'live';
+        toggleSourceMode();
+    } else {
+        estudanteControls.classList.remove('d-none');
+        funcionarioControls.classList.add('d-none');
+        ofertaSelect.setAttribute('required', 'required'); 
+        document.querySelector('h1').innerHTML = '<i class="bi bi-calendar-check-fill me-2"></i> Registo de Presença de Estudantes';
+        exibirToast("Modo Estudantes Ativo. Selecione a turma.", 'info');
+        sourceModeSelect.querySelector('option[value="upload"]').disabled = false;
+    }
+    
+    limparCanvas(); 
+    listaNomesContainer.classList.add('d-none');
+    updateActionButton();
+    checkAndStartDetection(); 
+}
+
+function toggleSourceMode() {
+    const modo = sourceModeSelect.value;
+    
+    if (modo === 'live') {
+        liveCameraBlock.classList.remove('d-none');
+        uploadBlock.classList.add('d-none');
+        // Mostra o seletor de câmeras e sua div wrapper
+        seletorCamerasWrapper.classList.remove('d-none'); 
+
+        if (currentStream) {
+            checkAndStartDetection(); 
+        } else if (seletor.value) {
+            loadCameras(seletor.value);
+        } else {
+            enumerateCameras();
+        }
+        
+        // Garante que o preview de upload está escondido
+        previewImage.style.display = 'none';
+
+    } else { // modo === 'upload'
+        if (!moduloSelect && initialMode === 'funcionarios') {
+            exibirToast("⚠️ O modo de Funcionário não permite upload.", 'warning');
+            sourceModeSelect.value = 'live'; 
+            return;
+        }
+
+        liveCameraBlock.classList.add('d-none');
+        uploadBlock.classList.remove('d-none');
+        // Oculta o seletor de câmeras
+        seletorCamerasWrapper.classList.add('d-none'); 
+
+        stopFaceDetectionTimer();
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        
+        limparCanvas();
+        
+        // Verifica se há um arquivo para mostrar o preview ao alternar o modo
+        if (fileUploadInput.files.length > 0) {
+            previewImage.style.display = 'block';
+        } else {
+            previewImage.style.display = 'none';
+        }
+    }
+    
+    listaNomesContainer.classList.add('d-none'); 
+    updateActionButton();
+}
+
+function updateActionButton() {
+    const modo = sourceModeSelect.value;
+    if (modo === 'live') {
+        // Alerta: Mudar para 'Reconhecimento Manual' é enganador, pois requer Liveness. 
+        // Aconselho manter a função principal como automática.
+        botaoReconhecer.innerHTML = '<i class="bi bi-camera-fill"></i> Capturar Instantâneo (Manual)'; 
+    } else {
+        botaoReconhecer.innerHTML = '<i class="bi bi-cloud-arrow-up-fill"></i> Iniciar Reconhecimento (Upload)';
+    }
+}
+
+/**
+ * Listener de upload de arquivo: carrega o preview e o torna visível.
+ * ***Ajustado para forçar o recarregamento da imagem no preview para garantir a qualidade.***
+ */
+fileUploadInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            // Garante que a imagem é carregada com a melhor resolução possível
+            previewImage.src = e.target.result; 
+            previewImage.style.display = 'block'; 
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewImage.src = '';
+        previewImage.style.display = 'none';
+    }
+    listaNomesContainer.classList.add('d-none');
+});
+
+
+function capturarImagem(isAutomatic) { 
+    const sourceMode = sourceModeSelect.value;
+    if (sourceMode === 'live') {
+        if (isAutomatic && !isReadyForDetection()) {
+             console.warn("Tentativa de reconhecimento automático abortada: Seleções pendentes.");
+             checkAndStartDetection();
+             return;
+        }
+        // Se for automático (isAutomatic=true), ele foi chamado pela função de liveness.
+        // Se for manual (isAutomatic=false), ele deve ser bloqueado, pois não fará a checagem de liveness.
+        if (!isAutomatic) {
+             exibirToast("⚠️ O reconhecimento manual (Capturar Instantâneo) está desativado no modo live, pois a verificação de Liveness é obrigatória. Use a deteção automática.", 'warning');
+             return;
+        }
+        
+        capturarInstantaneo(isAutomatic);
+    } else {
+        if (!isAutomatic) {
+            processarUpload(); 
+        }
+    }
+}
+
+
+function capturarInstantaneo(isAutomatic) {
+    if (isProcessing) {
+        if (!isAutomatic) {
+             exibirToast("Aguarde, um reconhecimento está em andamento.", 'warning');
+        }
+        return;
+    }
+    
+    // Bloqueio de segurança extra para modo manual, embora o botão já esteja desativado
+    if (!isAutomatic) {
+         exibirToast("⚠️ Erro: Captura manual desativada para garantir Liveness.", 'danger');
+         return;
+    }
+
+    const spinner = isAutomatic ? carregandoAutomatico : carregandoManual;
+    const botao = document.getElementById('botaoReconhecer');
+
+    if (!currentStream) {
+        if (!isAutomatic) { exibirToast("⚠️ Inicie a câmera e aguarde a pré-visualização.", 'warning'); }
+        if (isAutomatic) { checkAndStartDetection(); }
+        return;
+    }
+
+    instantaneoCanvas.width = video.videoWidth;
+    instantaneoCanvas.height = video.videoHeight;
+    instantaneoCanvas.getContext('2d').drawImage(video, 0, 0);
+    const imagemBase64 = instantaneoCanvas.toDataURL('image/jpeg');
+
+    const modulo = moduloSelect ? moduloSelect.value : initialMode; 
+    let endpoint = '';
+    let bodyData = {};
+    
+    let professorId = null;
+    let selectedProfessorName = null;
+    
+    if (modulo === 'funcionarios') {
+        endpoint = '/processar_reconhecimento_funcionario';
+        bodyData = { 
+            imagem: imagemBase64,
+            is_group_upload: false 
+        };
+        
+    } else { // Modulo Estudantes (Live)
+        endpoint = '/processar_reconhecimento';
+        
+        const ofertaId = ofertaSelect.value;
+        professorId = professorSelectEl.value;
+        
+        if ("{{ tipo_usuario }}" === 'Admin') {
+            selectedProfessorName = professorSelectEl.selectedIndex > 0 ? professorSelectEl.options[professorSelectEl.selectedIndex].text : 'N/A';
+        } else {
+            selectedProfessorName = document.getElementById('professor_select_disabled').value;
+        }
+        
+        // As validações de Professor/Oferta já foram feitas pelo checkAndStartDetection, 
+        // mas as mantemos aqui para segurança da rota manual (embora desativada)
+        if (!isAutomatic) {
+             // ... (validacoes omitidas)
+        } 
+
+        bodyData = {
+            imagem: imagemBase64,
+            oferta_id: ofertaId,
+            professor_id: professorId,
+            is_group_upload: false 
+        };
+    }
+    
+    isProcessing = true;
+    spinner.classList.remove("d-none");
+    if (!isAutomatic) { 
+        botao.disabled = true;
+        limparCanvas(); 
+        exibirToast("👁️ Captura manual iniciada...");
+    } else {
+        console.log("Reconhecimento automático ativado...");
+    }
+
+    fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        isProcessing = false;
+        spinner.classList.add("d-none");
+        if (!isAutomatic) { botao.disabled = false; }
+        
+        const somConfirmacao = document.getElementById('somConfirmacao');
+        const somErro = document.getElementById('somErro');
+
+        if (data.tocar_som_erro) {
+            somErro.play();
+        } else if (data.sucesso || data.mensagem.includes('ℹ️') || data.mensagem.includes('⚠️')) {
+            somConfirmacao.play();
+        }
+        
+        if (isAutomatic) {
+            setTimeout(() => {
+                lastFaceDetected = false; 
+                startFaceDetectionTimer(); // Reinicia o timer do liveness
+            }, AUTORECOGNITION_COOLDOWN);
+        }
+
+        if (!data.sucesso && !data.dados) { 
+            limparCanvas();
+            exibirToast(data.mensagem || "❌ Rosto não reconhecido ou erro de sistema.", 'danger');
+            return;
+        }
+
+        let resultado;
+        if (modulo === 'funcionarios') {
+            const status_icon = data.mensagem ? data.mensagem.trim().split(' ')[0].replace('**', '') : '❌';
+
+            resultado = {
+                dados: data.dados, 
+                dimensoes: data.dimensoes || {},
+                status_icon: status_icon,
+                status_mensagem: data.mensagem 
+            };
+        } else {
+            resultado = data.resultado_detalhado; 
+        }
+
+        
+        if (resultado && resultado.dados) {
+            limparCanvas(); 
+            preencherInfoCard(resultado, modulo, selectedProfessorName);
+        }
+        
+        // Desenha o retângulo de RECONHECIMENTO (verde/vermelho baseado no status do registro, não do liveness)
+        if (resultado.dimensoes) {
+            const dim = resultado.dimensoes;
+            const cor = resultado.status_icon === '✅' ? 'lime' : 'red';
+            desenharRetangulo(dim.left, dim.top, dim.right - dim.left, dim.bottom - dim.top, cor);
+        }
+
+        const toastTipo = data.tocar_som_erro ? 'danger' : (data.mensagem.includes('ℹ️') || data.mensagem.includes('⚠️') ? 'warning' : 'success');
+        exibirToast(data.mensagem, toastTipo);
+        
+    })
+    .catch(err => {
+        isProcessing = false;
+        spinner.classList.add("d-none");
+        if (!isAutomatic) { 
+            botao.disabled = false; 
+            limparCanvas();
+            exibirToast("❌ Erro durante o processamento do instantâneo.", 'danger');
+        } else {
+            console.error("Erro no processamento automático:", err);
+            setTimeout(() => {
+                lastFaceDetected = false; 
+                startFaceDetectionTimer();
+            }, AUTORECOGNITION_COOLDOWN);
+        }
+    });
+}
+
+/**
+ * Função para esperar que a imagem carregue
+ * @param {HTMLImageElement} img 
+ * @returns {Promise<HTMLImageElement>}
+ */
+function waitForImageLoad(img) {
+    return new Promise((resolve, reject) => {
+        // Se a imagem já estiver completa (cache ou carregamento rápido)
+        if (img.complete && img.naturalHeight !== 0) {
+            resolve(img);
+        } else {
+            // Caso contrário, espera pelos eventos
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+        }
+    });
+}
+
+/**
+ * LÓGICA DE PROCESSAMENTO DE UPLOAD CORRIGIDA (Garante a melhor resolução no canvas antes de enviar)
+ */
+async function processarUpload() {
+    const modulo = moduloSelect ? moduloSelect.value : initialMode;
+    if (modulo === 'funcionarios') {
+        exibirToast("⚠️ O modo de Funcionário não permite upload.", 'warning');
+        return;
+    }
+    
+    const carregando = document.getElementById('carregando');
+    const botao = document.getElementById('botaoReconhecer');
+
+    if (!fileUploadInput.files.length) {
+        exibirToast("⚠️ Selecione um arquivo de imagem para upload.", 'warning');
+        return;
+    }
+
+    exibirToast("👁️ Analisando imagem de grupo...");
+    carregando.classList.remove("d-none");
+    botao.disabled = true;
+    listaNomesContainer.classList.add('d-none');
+    
+    let imagemBase64 = null;
+    
+    try {
+        const img = document.getElementById('previewImage');
+        // 1. Espera garantir que a imagem no elemento <img> está carregada
+        const loadedImg = await waitForImageLoad(img);
+        
+        // 2. Desenha no Canvas usando as dimensões naturais da imagem carregada (RESOLUÇÃO ORIGINAL)
+        const canvasUpload = document.getElementById('uploadCanvas');
+        canvasUpload.width = loadedImg.naturalWidth; 
+        canvasUpload.height = loadedImg.naturalHeight;
+        
+        if (canvasUpload.width === 0 || canvasUpload.height === 0) {
+            throw new Error("Erro ao obter dimensões da imagem.");
+        }
+        
+        const ctxUpload = canvasUpload.getContext('2d');
+        
+        // Redimensionamento opcional para otimização do backend (se for muito grande)
+        const MAX_DIM = 1200; 
+        let scale = 1;
+        if (loadedImg.naturalWidth > MAX_DIM || loadedImg.naturalHeight > MAX_DIM) {
+            scale = Math.min(MAX_DIM / loadedImg.naturalWidth, MAX_DIM / loadedImg.naturalHeight);
+            canvasUpload.width = loadedImg.naturalWidth * scale;
+            canvasUpload.height = loadedImg.naturalHeight * scale;
+        }
+        
+        ctxUpload.drawImage(loadedImg, 0, 0, canvasUpload.width, canvasUpload.height);
+        imagemBase64 = canvasUpload.toDataURL('image/jpeg', 0.9); // Qualidade JPEG 90%
+        
+    } catch (error) {
+        console.error("Erro no processamento da imagem de upload:", error);
+        carregando.classList.add("d-none");
+        botao.disabled = false;
+        limparCanvas();
+        exibirToast("❌ Erro: Não foi possível carregar a imagem em alta qualidade para processamento.", 'danger');
+        return;
+    }
+    
+    // 3. CONTINUAÇÃO DA LÓGICA DE ENVIO
+    const endpoint = '/processar_reconhecimento';
+    
+    const ofertaId = ofertaSelect.value;
+    const professorId = professorSelectEl.value;
+    
+    let selectedProfessorName = null;
+    if ("{{ tipo_usuario }}" === 'Admin') {
+        selectedProfessorName = professorSelectEl.options[professorSelectEl.selectedIndex].text;
+        if (!professorId) {
+            exibirToast("⚠️ Selecione o Professor.", 'warning');
+            carregando.classList.add("d-none");
+            botao.disabled = false;
+            return;
+        }
+    } else {
+        selectedProfessorName = document.getElementById('professor_select_disabled').value;
+    }
+    
+    if (!ofertaId) {
+        exibirToast("⚠️ Selecione a Oferta/Turma.", 'warning');
+        carregando.classList.add("d-none");
+        botao.disabled = false;
+        return;
+    }
+
+    const bodyData = {
+        imagem: imagemBase64,
+        oferta_id: ofertaId,
+        professor_id: professorId,
+        is_group_upload: true 
+    };
+
+    // 4. EXECUTAR RECONHECIMENTO (Chamada Única ao Backend)
+    fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        carregando.classList.add("d-none");
+        botao.disabled = false;
+        
+        if (data.tocar_som_erro) {
+            document.getElementById('somErro').play();
+        } else if (data.sucesso || data.mensagem.includes('ℹ️') || data.mensagem.includes('⚠️')) {
+            document.getElementById('somConfirmacao').play();
+        }
+        
+        if (!data.sucesso) { 
+            limparCanvas();
+            listaNomesContainer.classList.add('d-none');
+            exibirToast(data.mensagem || "❌ Falha no reconhecimento de grupo.", 'danger');
+            return;
+        }
+
+        const toastTipo = data.tocar_som_erro ? 'danger' : (data.mensagem.includes('⚠️') ? 'warning' : 'success');
+
+        limparCanvas(); 
+        listaNomes.innerHTML = ''; 
+        
+        const listaGrupo = data.lista_grupo || [];
+        
+        if (listaGrupo.length > 0) {
+            
+            listaNomesContainer.querySelector('h5').innerHTML = `<i class="bi bi-list-check"></i> Resultado para ${listaGrupo.length} Rosto(s) Analisado(s):`;
+
+            listaGrupo.forEach(resultado => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-start';
+                
+                let iconHtml = '';
+                let statusClass = 'light';
+                
+                if (resultado.status_icon === '✅') {
+                    statusClass = 'success';
+                    iconHtml = '<i class="bi bi-check-circle-fill me-2 fs-5"></i>';
+                } else if (resultado.status_icon === 'ℹ️') {
+                    statusClass = 'info';
+                    iconHtml = '<i class="bi bi-info-circle-fill me-2 fs-5"></i>';
+                } else if (resultado.status_icon === '⚠️') {
+                    statusClass = 'warning';
+                    iconHtml = '<i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>';
+                } else if (resultado.status_icon === '❌') {
+                    statusClass = 'danger';
+                    iconHtml = '<i class="bi bi-x-circle-fill me-2 fs-5"></i>';
+                }
+
+                li.classList.add(`list-group-item-${statusClass}`);
+                
+                const nameContent = document.createElement('div');
+                nameContent.className = 'fw-bold';
+                nameContent.innerHTML = `${iconHtml} ${resultado.nome} <br>`;
+                li.appendChild(nameContent);
+                
+                const messageContent = document.createElement('small');
+                messageContent.className = 'ms-3 text-break';
+                
+                let cleanMessage = resultado.status_mensagem;
+                if (cleanMessage.includes(resultado.status_icon)) {
+                    cleanMessage = cleanMessage.replace(resultado.status_icon, '').trim();
+                }
+                
+                cleanMessage = cleanMessage.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                messageContent.innerHTML = `<span class="text-${statusClass}">Status:</span> ${cleanMessage}`;
+                li.appendChild(messageContent);
+                
+                listaNomes.appendChild(li);
+            });
+            listaNomesContainer.classList.remove('d-none'); 
+        } else {
+            listaNomesContainer.classList.add('d-none');
+            if (data.sucesso) {
+                 exibirToast("⚠️ Nenhum rosto válido encontrado na imagem de grupo.", 'warning');
+                 return;
+            }
+        }
+        
+        exibirToast(data.mensagem, toastTipo);
+        
+    })
+    .catch(err => {
+        carregando.classList.add("d-none");
+        botao.disabled = false;
+        limparCanvas();
+        listaNomesContainer.classList.add('d-none');
+        exibirToast("❌ Erro durante o processamento do upload.", 'danger');
+    });
+}
+
+function recarregarRostos() {
+    exibirToast("🔄 Recarregando rostos...");
+    fetch('/recarregar_rostos', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            exibirToast(data.mensagem, data.sucesso ? 'success' : 'danger');
+        })
+        .catch(err => {
+            exibirToast("❌ Erro ao recarregar rostos.", 'danger');
+        });
+}
+
+// --- LISTENERS PARA INICIAR/PARAR DETECÇÃO ---
+ofertaSelect.addEventListener('change', checkAndStartDetection);
+
+if (professorSelectEl) {
+    professorSelectEl.addEventListener('change', function() {
+        if ("{{ tipo_usuario }}" === 'Admin') {
+            filtrarOfertasPorProfessor(this.value);
+        }
+        checkAndStartDetection();
+    });
+}
+
+
+// --- INICIALIZAÇÃO ---
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    if (!moduloSelect && initialMode === 'funcionarios') {
+        estudanteControls.classList.add('d-none');
+        funcionarioControls.classList.remove('d-none');
+        document.querySelector('h1').innerHTML = '<i class="bi bi-clock-history me-2"></i> Registo de Ponto de Funcionários';
+        sourceModeSelect.value = 'live'; 
+        sourceModeSelect.querySelector('option[value="upload"]').disabled = true;
+    } else if (moduloSelect) {
+        toggleModule();
+    }
+
+    enumerateCameras();
+    
+    if (initialMode === 'estudantes') {
+        if ("{{ tipo_usuario }}" === 'Professor') {
+            const profId = document.getElementById('professor_select').value;
+            if (profId) {
+                filtrarOfertasPorProfessor(profId);
+            }
+        } else if ("{{ tipo_usuario }}" === 'Admin' && professorSelectEl.value) {
+            filtrarOfertasPorProfessor(professorSelectEl.value);
+        }
+    }
+    
+    // Executa no final para garantir que o modo inicial (Live ou Upload) está configurado
+    toggleSourceMode();
+});
+</script>
+</body>
+</html>
