@@ -1,0 +1,71 @@
+[33mcommit 957fe8c42b045339878a519c3ff88768f9890eff[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Pitch201 <pitchojpn@gmail.com>
+Date:   Mon Mar 16 13:51:55 2026 +0100
+
+    Actualizei o dasboard
+
+[33mcommit 39fd023b5d64f2c0d5ce4e5706f7ad6c6851893a[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 13:29:08 2026 +0100
+
+    Atualização do sistema
+
+[33mcommit d63b5c3316a8f59c7e199beb0d3780143fad6826[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 12:59:45 2026 +0100
+
+    Add database and known_faces for deployment
+
+[33mcommit 2c05a20bc53a6c98f7cd4f9693c7f33cf2e5e696[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 11:50:20 2026 +0100
+
+    Atualiza ícone PWA
+
+[33mcommit a52326450140918670abea0158063047435f3f2d[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 11:03:29 2026 +0100
+
+    Add known_faces folder for deployment
+
+[33mcommit c49df6dec3655601b1b4a34c2e40781f3b6e7df0[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 10:45:28 2026 +0100
+
+    add scipy
+
+[33mcommit 2c7ae60a2a918ae04ef107668139af1ef0268d88[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 10:37:48 2026 +0100
+
+    add gunicorn
+
+[33mcommit c84024c6095b21f779f56beed75c7b0f20bf254e[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 09:12:21 2026 +0100
+
+    docker fix dlib railway
+
+[33mcommit 01b05f2bb9c9d0aa2fb5d018a7cc3390081c6f27[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 09:02:56 2026 +0100
+
+    fix linux libs railway
+
+[33mcommit 276fabdb1d5398b7cdfe90d111a8788f76f45a16[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 08:30:05 2026 +0100
+
+    fix build memory render
+
+[33mcommit a246c7a98ef465e129977b39811c9e162c143390[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Mon Mar 16 08:25:13 2026 +0100
+
+    fix python version render
+
+[33mcommit 6352c20d3639379d254ed374700a758d76a79ae8[m
+Author: Joaquim Nangayamale <pitchojpn@gmail.com>
+Date:   Sun Mar 15 10:53:10 2026 +0100
+
+    deploy smartacess limpo

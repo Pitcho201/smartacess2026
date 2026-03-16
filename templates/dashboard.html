@@ -290,32 +290,28 @@
       .badge.bg-danger { background-color: #dc3545 !important; }
       
       /* Responsividade aprimorada */
-      @media (max-width: 768px) {
-        .sidebar {
-          width: 250px;
-          transform: translateX(-250px);
-        }
-        #menu-toggle {
-          background-color: #343a40;
-          left: 10px;
-        }
-        .content {
-          padding: 20px 15px;
-        }
-        .text-center.mb-4.d-flex {
-            flex-direction: column;
-        }
-        .col-md-3, .col-md-2 {
-            width: 100%;
-        }
-        .align-self-end {
-            align-self: flex-start !important;
-            margin-top: 10px;
-        }
-        .dropdown.d-grid button {
-            width: 100%;
-        }
-      }
+     @media (max-width: 768px) {
+
+  .sidebar {
+    transform: translateX(-100%);
+    width: 250px;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .content {
+    margin-left: 0 !important;
+    padding: 70px 15px 20px 15px;
+  }
+
+  #menu-toggle {
+    left: 10px;
+    top: 10px;
+  }
+
+}
 
     </style>
   </head>
