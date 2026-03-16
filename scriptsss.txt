@@ -1,0 +1,14 @@
+git add .
+git commit -m "Atualização do sistema"
+git push
+
+
+✅ ✔️ PASSO 8 — Como atualizar no futuro (muito importante)
+
+Sempre que mudar código:
+
+git add .
+git commit -m "Actualizei o dasboard"
+git push
+
+git log
